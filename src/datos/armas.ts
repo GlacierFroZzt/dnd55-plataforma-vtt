@@ -1,0 +1,140 @@
+import { DefinicionArma } from '@/esquemas/armas';
+
+export const CATALOGO_ARMAS_55: Record<string, DefinicionArma> = {
+  daga: {
+    id: 'daga',
+    nombre: 'Daga',
+    categoria: 'simpleCuerpoACuerpo',
+    dadoDano: '1d4',
+    tipoDano: 'perforante',
+    propiedades: ['sutileza', 'ligera', 'arrojadiza'],
+    maestriaPorDefecto: 'corteRapido', // Nick
+    pesoLibras: 1,
+    precioPo: 2,
+    alcancePies: { normal: 20, maximo: 60 },
+  },
+  espadaCorta: {
+    id: 'espadaCorta',
+    nombre: 'Espada Corta',
+    categoria: 'marcialCuerpoACuerpo',
+    dadoDano: '1d6',
+    tipoDano: 'perforante',
+    propiedades: ['sutileza', 'ligera'],
+    maestriaPorDefecto: 'hostigamiento', // Vex
+    pesoLibras: 2,
+    precioPo: 10,
+  },
+  cimitarra: {
+    id: 'cimitarra',
+    nombre: 'Cimitarra',
+    categoria: 'marcialCuerpoACuerpo',
+    dadoDano: '1d6',
+    tipoDano: 'cortante',
+    propiedades: ['sutileza', 'ligera'],
+    maestriaPorDefecto: 'corteRapido', // Nick
+    pesoLibras: 3,
+    precioPo: 25,
+  },
+  espadaLarga: {
+    id: 'espadaLarga',
+    nombre: 'Espada Larga',
+    categoria: 'marcialCuerpoACuerpo',
+    dadoDano: '1d8',
+    tipoDano: 'cortante',
+    propiedades: ['versatil'],
+    maestriaPorDefecto: 'minar', // Sap
+    pesoLibras: 3,
+    precioPo: 15,
+  },
+  espadon: {
+    id: 'espadon',
+    nombre: 'Espadón (Gran Espada)',
+    categoria: 'marcialCuerpoACuerpo',
+    dadoDano: '2d6',
+    tipoDano: 'cortante',
+    propiedades: ['pesada', 'dosManos'],
+    maestriaPorDefecto: 'roce', // Graze
+    pesoLibras: 6,
+    precioPo: 50,
+  },
+  hachaDosManos: {
+    id: 'hachaDosManos',
+    nombre: 'Gran Hacha',
+    categoria: 'marcialCuerpoACuerpo',
+    dadoDano: '1d12',
+    tipoDano: 'cortante',
+    propiedades: ['pesada', 'dosManos'],
+    maestriaPorDefecto: 'hendidura', // Cleave
+    pesoLibras: 7,
+    precioPo: 30,
+  },
+  alabarda: {
+    id: 'alabarda',
+    nombre: 'Alabarda',
+    categoria: 'marcialCuerpoACuerpo',
+    dadoDano: '1d10',
+    tipoDano: 'cortante',
+    propiedades: ['pesada', 'dosManos', 'alcance'],
+    maestriaPorDefecto: 'hendidura', // Cleave
+    pesoLibras: 6,
+    precioPo: 20,
+  },
+  martilloGuerra: {
+    id: 'martilloGuerra',
+    nombre: 'Martillo de Guerra',
+    categoria: 'marcialCuerpoACuerpo',
+    dadoDano: '1d8',
+    tipoDano: 'contundente',
+    propiedades: ['versatil'],
+    maestriaPorDefecto: 'empujon', // Push
+    pesoLibras: 2,
+    precioPo: 15,
+  },
+  baston: {
+    id: 'baston',
+    nombre: 'Bastón',
+    categoria: 'simpleCuerpoACuerpo',
+    dadoDano: '1d6',
+    tipoDano: 'contundente',
+    propiedades: ['versatil'],
+    maestriaPorDefecto: 'derribo', // Topple
+    pesoLibras: 4,
+    precioPo: 0.2,
+  },
+  arcoCorto: {
+    id: 'arcoCorto',
+    nombre: 'Arco Corto',
+    categoria: 'simpleADistancia',
+    dadoDano: '1d6',
+    tipoDano: 'perforante',
+    propiedades: ['municion', 'dosManos'],
+    maestriaPorDefecto: 'hostigamiento', // Vex
+    pesoLibras: 2,
+    precioPo: 25,
+    alcancePies: { normal: 80, maximo: 320 },
+  },
+  arcoLargo: {
+    id: 'arcoLargo',
+    nombre: 'Arco Largo',
+    categoria: 'marcialADistancia',
+    dadoDano: '1d8',
+    tipoDano: 'perforante',
+    propiedades: ['municion', 'pesada', 'dosManos'],
+    maestriaPorDefecto: 'ralentizar', // Slow
+    pesoLibras: 2,
+    precioPo: 50,
+    alcancePies: { normal: 150, maximo: 600 },
+  },
+  ballestaPesada: {
+    id: 'ballestaPesada',
+    nombre: 'Ballesta Pesada',
+    categoria: 'marcialADistancia',
+    dadoDano: '1d10',
+    tipoDano: 'perforante',
+    propiedades: ['municion', 'pesada', 'recarga', 'dosManos'],
+    maestriaPorDefecto: 'empujon', // Push
+    pesoLibras: 18,
+    precioPo: 50,
+    alcancePies: { normal: 100, maximo: 400 },
+  },
+};
