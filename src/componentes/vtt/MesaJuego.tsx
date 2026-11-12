@@ -37,6 +37,9 @@ export function MesaJuego({ personajeInicial, onVolverAlMenu }: Props) {
   const [mostrarAjustesIA, setMostrarAjustesIA] = useState(false);
   const [cargandoIA, setCargandoIA] = useState(false);
 
+  // Subnavegación Phone-First para pantallas móviles (< 1024px)
+  const [pestanaMovil, setPestanaMovil] = useState<'chat' | 'ficha' | 'dados'>('chat');
+
   // Memoria del Bot DM (Ledger de Decisiones)
   const [ledger] = useState<LedgerEventos>(() => {
     const l = new LedgerEventos();
@@ -290,65 +293,106 @@ export function MesaJuego({ personajeInicial, onVolverAlMenu }: Props) {
   return (
     <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col">
       {/* Barra Superior de la Mesa */}
-      <header className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-500 flex items-center justify-center text-amber-400 font-bold">
+      <header className="bg-slate-900 border-b border-slate-800 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-3 shadow-md shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-amber-500/20 border border-amber-500 flex items-center justify-center text-amber-400 font-bold text-xs sm:text-sm shrink-0">
             5.5
           </div>
-          <div>
-            <h1 className="font-bold text-slate-100 text-sm sm:text-base flex items-center gap-2">
-              Mesa Virtual: Aventura en la Cripta
-              <span className="text-xs font-normal bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded">
-                D&D 2024
+          <div className="min-w-0">
+            <h1 className="font-bold text-slate-100 text-xs sm:text-base flex items-center gap-1.5 sm:gap-2 truncate">
+              <span className="truncate">Aventura en la Cripta</span>
+              <span className="text-[10px] sm:text-xs font-normal bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded shrink-0">
+                2024
               </span>
             </h1>
-            <p className="text-xs text-slate-400">
-              Sesión {sesion} • Turno {turno} • Modo: <span className="text-slate-200 capitalize font-medium">{modoJuego}</span>
+            <p className="text-[10px] sm:text-xs text-slate-400 truncate">
+              S{sesion} • T{turno} • <span className="text-slate-200 capitalize font-medium">{modoJuego}</span>
             </p>
           </div>
         </div>
 
         {/* Sala Multijugador y Ajustes */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button
             onClick={() => setModoJuego(modoJuego === 'solo' ? 'multijugador' : 'solo')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+            className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold flex items-center gap-1 border transition-all ${
               modoJuego === 'multijugador'
                 ? 'bg-purple-950/60 border-purple-500 text-purple-300'
                 : 'bg-slate-800 border-slate-700 text-slate-300'
             }`}
           >
             <Users className="w-3.5 h-3.5" />
-            {modoJuego === 'multijugador' ? 'Multijugador Activo' : 'Modo Solitario'}
+            <span className="hidden sm:inline">{modoJuego === 'multijugador' ? 'Multijugador Activo' : 'Modo Solitario'}</span>
+            <span className="sm:hidden">{modoJuego === 'multijugador' ? 'Multi' : 'Solo'}</span>
           </button>
 
           <button
             onClick={copiarEnlace}
             title="Copiar código de sala para amigos"
-            className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 font-mono"
+            className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-2 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs flex items-center gap-1 font-mono"
           >
             {copiado ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            {codigoSala}
+            <span>{codigoSala}</span>
           </button>
 
           <button
             onClick={() => setMostrarAjustesIA(!mostrarAjustesIA)}
-            className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 font-medium"
+            className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 px-2 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs flex items-center gap-1 font-medium"
           >
             <Cpu className="w-3.5 h-3.5" />
-            IA: {proveedorIA.toUpperCase()}
+            <span className="hidden sm:inline">IA: {proveedorIA.toUpperCase()}</span>
           </button>
 
           {onVolverAlMenu && (
             <button
               onClick={onVolverAlMenu}
-              className="text-slate-400 hover:text-slate-200 text-xs px-2 py-1"
+              className="text-slate-400 hover:text-slate-200 text-xs px-2 py-1.5 rounded border border-slate-800 hover:border-slate-700"
             >
               Salir
             </button>
           )}
         </div>
       </header>
+
+      {/* Subbarra de Navegación Phone-First (Visible únicamente en Móviles < 1024px) */}
+      <nav aria-label="Secciones de la mesa en móvil" className="lg:hidden flex border-b border-slate-800 bg-slate-900/95 backdrop-blur sticky top-0 z-20 shrink-0">
+        <button
+          type="button"
+          onClick={() => setPestanaMovil('chat')}
+          className={`flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition-all min-h-[44px] ${
+            pestanaMovil === 'chat'
+              ? 'border-amber-500 text-amber-400 bg-amber-500/10'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Narración & DM</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setPestanaMovil('ficha')}
+          className={`flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition-all min-h-[44px] ${
+            pestanaMovil === 'ficha'
+              ? 'border-amber-500 text-amber-400 bg-amber-500/10'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Shield className="w-4 h-4" />
+          <span>Mi Ficha & Grupo</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setPestanaMovil('dados')}
+          className={`flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition-all min-h-[44px] ${
+            pestanaMovil === 'dados'
+              ? 'border-amber-500 text-amber-400 bg-amber-500/10'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Dices className="w-4 h-4" />
+          <span>Dados & Bitácora</span>
+        </button>
+      </nav>
 
       {/* Modal / Panel de Ajustes de IA */}
       {mostrarAjustesIA && (
@@ -392,7 +436,7 @@ export function MesaJuego({ personajeInicial, onVolverAlMenu }: Props) {
       {/* Contenido Principal en 3 Columnas: Panel de Grupo | Chat Narrativo DM | Tiradas y Bitácora */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 overflow-hidden">
         {/* COLUMNA 1: Estado del Grupo de Aventureros (3 columnas) */}
-        <div className="lg:col-span-3 bg-slate-950/70 border-r border-slate-800 p-4 overflow-y-auto space-y-4">
+        <div className={`${pestanaMovil === 'ficha' ? 'block' : 'hidden lg:block'} lg:col-span-3 bg-slate-950/70 border-r border-slate-800 p-3 sm:p-4 overflow-y-auto space-y-4 pb-16 lg:pb-4`}>
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <Users className="w-4 h-4 text-amber-400" />
@@ -501,18 +545,18 @@ export function MesaJuego({ personajeInicial, onVolverAlMenu }: Props) {
         </div>
 
         {/* COLUMNA 2: Chat Narrativo con Streaming del Bot DM (6 columnas) */}
-        <div className="lg:col-span-6 flex flex-col h-[calc(100vh-61px)] bg-[#090d16]">
+        <div className={`${pestanaMovil === 'chat' ? 'flex' : 'hidden lg:flex'} lg:col-span-6 flex-col h-[calc(100dvh-106px)] lg:h-[calc(100vh-61px)] bg-[#090d16]`}>
           {/* Mensajes */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3.5">
+          <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3">
             {mensajes.map((m) => (
               <div
                 key={m.id}
-                className={`p-3.5 rounded-xl text-sm leading-relaxed ${
+                className={`p-3 sm:p-3.5 rounded-xl text-xs sm:text-sm leading-relaxed ${
                   m.emisor === 'dm'
                     ? 'bg-slate-900 border border-amber-500/30 text-slate-200'
                     : m.nombre.includes('Sistema')
                     ? 'bg-indigo-950/40 border border-indigo-800/40 text-indigo-200'
-                    : 'bg-slate-800 border border-slate-700 text-slate-100 ml-6'
+                    : 'bg-slate-800 border border-slate-700 text-slate-100 ml-4 sm:ml-6'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1 text-xs">
@@ -541,71 +585,72 @@ export function MesaJuego({ personajeInicial, onVolverAlMenu }: Props) {
             )}
           </div>
 
-          {/* Acciones Rápidas */}
-          <div className="px-4 py-2 border-t border-slate-800/60 bg-slate-950/50 flex flex-wrap gap-1.5 text-xs">
+          {/* Acciones Rápidas con Scroll Horizontal en Móvil */}
+          <div className="px-3 sm:px-4 py-2 border-t border-slate-800/60 bg-slate-950/50 flex overflow-x-auto no-scrollbar gap-1.5 text-xs whitespace-nowrap shrink-0">
             <button
               onClick={() => enviarMensaje('Ataco con mi arma principal aprovechando su maestría de combate.')}
-              className="bg-red-950/40 hover:bg-red-900/60 border border-red-800/60 text-red-200 px-2.5 py-1 rounded"
+              className="bg-red-950/50 hover:bg-red-900/60 border border-red-800/60 text-red-200 px-3 py-1.5 rounded-lg shrink-0 min-h-[36px] flex items-center"
             >
               ⚔️ Atacar con {armaEquipada.nombre}
             </button>
             <button
               onClick={() => enviarMensaje('Investigo el sarcófago y los bajorrelieves en busca de inscripciones o trampas.')}
-              className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-2.5 py-1 rounded"
+              className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-lg shrink-0 min-h-[36px] flex items-center"
             >
               🔍 Investigar Sala
             </button>
             <button
               onClick={() => enviarMensaje('Intento parlamentar pacíficamente y pactar una tregua sin derramar sangre.')}
-              className="bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-800/60 text-emerald-200 px-2.5 py-1 rounded"
+              className="bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-800/60 text-emerald-200 px-3 py-1.5 rounded-lg shrink-0 min-h-[36px] flex items-center"
             >
               🤝 Negociar Tregua
             </button>
           </div>
 
-          {/* Entrada de Texto */}
+          {/* Entrada de Texto Táctil */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
               enviarMensaje();
             }}
-            className="p-3 bg-slate-900 border-t border-slate-800 flex gap-2"
+            className="p-2.5 sm:p-3 bg-slate-900 border-t border-slate-800 flex gap-2 pb-safe shrink-0"
           >
             <input
               type="text"
               value={inputMensaje}
               onChange={(e) => setInputMensaje(e.target.value)}
-              placeholder="¿Qué deseas hacer? (ej. Desenvaino mi espadón, investigo el túnel...)"
-              className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500"
+              placeholder="¿Qué deseas hacer en este turno?"
+              className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-sm text-slate-100 focus:outline-none focus:border-amber-500 min-h-[44px]"
             />
             <button
               type="submit"
               disabled={cargandoIA}
-              className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 text-sm transition-colors"
+              className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold px-3.5 sm:px-4 py-2 rounded-lg flex items-center justify-center gap-1.5 text-xs sm:text-sm transition-colors min-h-[44px] shrink-0"
             >
-              <Send className="w-4 h-4" /> Enviar
+              <Send className="w-4 h-4" />
+              <span className="hidden sm:inline">Enviar</span>
             </button>
           </form>
         </div>
 
         {/* COLUMNA 3: Tirador de Dados 5.5 y Bitácora de Decisiones (Ledger) (3 columnas) */}
-        <div className="lg:col-span-3 bg-slate-950/70 border-l border-slate-800 p-4 overflow-y-auto space-y-4">
+        <div className={`${pestanaMovil === 'dados' ? 'block' : 'hidden lg:block'} lg:col-span-3 bg-slate-950/70 border-l border-slate-800 p-3 sm:p-4 overflow-y-auto space-y-4 pb-16 lg:pb-4`}>
           {/* Panel de Tiradas D20 */}
-          <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
+          <div className="bg-slate-900 p-3.5 sm:p-4 rounded-xl border border-slate-800 space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
               <Dices className="w-4 h-4 text-amber-400" />
               Tirador D20 (D&D 5.5)
             </h3>
 
             {/* Selector de Ventaja */}
-            <div className="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-lg text-[11px] font-semibold text-center">
+            <div className="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-lg text-xs font-semibold text-center">
               {(['normal', 'ventaja', 'desventaja'] as const).map((v) => (
                 <button
                   key={v}
                   type="button"
                   onClick={() => setTipoVentaja(v)}
-                  className={`py-1 rounded capitalize ${
-                    tipoVentaja === v ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'
+                  className={`py-2 rounded capitalize min-h-[38px] transition-all ${
+                    tipoVentaja === v ? 'bg-amber-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   {v}
@@ -613,23 +658,23 @@ export function MesaJuego({ personajeInicial, onVolverAlMenu }: Props) {
               ))}
             </div>
 
-            {/* Botones de Tirada */}
-            <div className="space-y-1.5">
+            {/* Botones de Tirada Táctiles */}
+            <div className="space-y-2">
               <button
                 onClick={() => ejecutarTiradaD20('fuerza', 'Tirada de Ataque (FUE)')}
-                className="w-full bg-red-950/60 hover:bg-red-900/80 border border-red-700/60 text-red-200 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1.5"
+                className="w-full bg-red-950/60 hover:bg-red-900/80 border border-red-700/60 text-red-200 text-xs font-bold py-2.5 rounded-lg flex items-center justify-center gap-1.5 min-h-[44px]"
               >
                 ⚔️ Tirada de Ataque ({armaEquipada.nombre})
               </button>
               <button
                 onClick={() => ejecutarTiradaD20('sabiduria', 'Prueba de Sabiduría (Percepción)')}
-                className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium py-1.5 rounded-lg"
+                className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium py-2.5 rounded-lg min-h-[44px]"
               >
                 👁️ Percepción / Sabiduría
               </button>
               <button
                 onClick={() => ejecutarTiradaD20('constitucion', 'Tirada de Salvación (CON)')}
-                className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium py-1.5 rounded-lg"
+                className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium py-2.5 rounded-lg min-h-[44px]"
               >
                 🛡️ Salvación de Constitución
               </button>

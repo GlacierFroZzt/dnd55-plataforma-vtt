@@ -205,19 +205,19 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-5xl mx-auto shadow-2xl">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-6 max-w-5xl mx-auto shadow-2xl">
       {/* Encabezado y Progreso */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-4 mb-5 gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-amber-400 flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-amber-400" />
-            Creador de Personajes D&D 5.5 (Revisión Oficial 2024)
+          <h2 className="text-xl sm:text-2xl font-bold text-amber-400 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
+            Creador de Personajes D&D 5.5
           </h2>
-          <p className="text-slate-400 text-sm">
-            10 especies oficiales con sus legados, 16 trasfondos oficiales, 12 clases, 48 subclases y maestrías de armas.
+          <p className="text-slate-400 text-xs sm:text-sm mt-0.5">
+            10 especies con legados, 16 trasfondos oficiales, 12 clases, 48 subclases y maestrías.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs font-semibold">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-xs font-semibold overflow-x-auto no-scrollbar py-1">
           {[
             { num: 1, label: 'Origen & Clase' },
             { num: 2, label: 'Características' },
@@ -226,7 +226,7 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
           ].map((item) => (
             <span
               key={item.num}
-              className={`px-3 py-1.5 rounded-full flex items-center gap-1.5 ${
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full flex items-center gap-1 sm:gap-1.5 shrink-0 text-[11px] sm:text-xs transition-colors ${
                 paso === item.num
                   ? 'bg-amber-500 text-slate-950 font-bold'
                   : paso > item.num
@@ -243,36 +243,36 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
 
       {/* PASO 1: Identidad, Especie con Legados, Trasfondos y Clase */}
       {paso === 1 && (
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           {/* Nombres y Nivel */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Nombre del Personaje</label>
+              <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1">Nombre del Personaje</label>
               <input
                 type="text"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-sm text-slate-100 min-h-[44px] focus:outline-none focus:border-amber-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Nombre del Jugador</label>
+              <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1">Nombre del Jugador</label>
               <input
                 type="text"
                 value={jugador}
                 onChange={(e) => setJugador(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-sm text-slate-100 min-h-[44px] focus:outline-none focus:border-amber-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Nivel Inicial (1-20)</label>
+              <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1">Nivel Inicial (1-20)</label>
               <input
                 type="number"
                 min={1}
                 max={20}
                 value={nivel}
                 onChange={(e) => setNivel(parseInt(e.target.value) || 1)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 font-bold"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-sm text-slate-100 font-bold min-h-[44px]"
               />
             </div>
           </div>
@@ -463,7 +463,7 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
           <div className="flex justify-end pt-4">
             <button
               onClick={() => setPaso(2)}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-2.5 rounded-lg transition-colors shadow"
+              className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-3 sm:py-2.5 rounded-lg transition-colors shadow min-h-[44px] flex items-center justify-center text-sm"
             >
               Siguiente: Puntuaciones de Característica →
             </button>
@@ -482,7 +482,7 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
             {[
               { clave: 'fuerza', label: 'Fuerza (FUE)', val: fuerza, set: setFuerza },
               { clave: 'destreza', label: 'Destreza (DES)', val: destreza, set: setDestreza },
@@ -496,31 +496,49 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
               return (
                 <div
                   key={item.label}
-                  className={`p-4 rounded-xl border text-center transition-all ${
+                  className={`p-3 sm:p-4 rounded-xl border text-center transition-all ${
                     esOpcionTrasfondo
                       ? 'bg-slate-950 border-amber-500/40 shadow-sm'
                       : 'bg-slate-950/60 border-slate-800'
                   }`}
                 >
-                  <div className="flex items-center justify-between text-xs text-slate-400 mb-1 font-semibold">
-                    <span>{item.label}</span>
+                  <div className="flex items-center justify-between text-[11px] sm:text-xs text-slate-400 mb-1 font-semibold">
+                    <span className="truncate">{item.label}</span>
                     {esOpcionTrasfondo && (
-                      <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30">
+                      <span className="text-[9px] sm:text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30 shrink-0">
                         Trasfondo
                       </span>
                     )}
                   </div>
-                  <div className="text-3xl font-bold text-amber-400 my-1">
+                  <div className="text-2xl sm:text-3xl font-bold text-amber-400 my-0.5 sm:my-1">
                     {mod >= 0 ? `+${mod}` : mod}
                   </div>
-                  <input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={item.val}
-                    onChange={(e) => item.set(parseInt(e.target.value) || 10)}
-                    className="w-20 text-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 font-bold"
-                  />
+                  <div className="flex items-center justify-center gap-1 sm:gap-1.5 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => item.set(Math.max(1, item.val - 1))}
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold flex items-center justify-center text-sm active:scale-95 transition-transform"
+                      aria-label={`Disminuir ${item.label}`}
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={item.val}
+                      onChange={(e) => item.set(parseInt(e.target.value) || 10)}
+                      className="w-12 sm:w-14 text-center bg-slate-900 border border-slate-700 rounded-lg py-1 sm:py-1.5 text-base sm:text-sm text-slate-100 font-bold"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => item.set(Math.min(20, item.val + 1))}
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold flex items-center justify-center text-sm active:scale-95 transition-transform"
+                      aria-label={`Aumentar ${item.label}`}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -629,16 +647,16 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
             </div>
           </div>
 
-          <div className="flex justify-between pt-4">
+          <div className="flex flex-col-reverse sm:flex-row justify-between pt-4 gap-2.5">
             <button
               onClick={() => setPaso(1)}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded-lg"
+              className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-lg text-sm min-h-[44px] flex items-center justify-center"
             >
               ← Volver
             </button>
             <button
               onClick={() => setPaso(3)}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-2 rounded-lg"
+              className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-2.5 rounded-lg text-sm min-h-[44px] flex items-center justify-center shadow"
             >
               Siguiente: Armas y Maestrías →
             </button>
@@ -706,16 +724,16 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
             </div>
           </div>
 
-          <div className="flex justify-between pt-4">
+          <div className="flex flex-col-reverse sm:flex-row justify-between pt-4 gap-2.5">
             <button
               onClick={() => setPaso(2)}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded-lg"
+              className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-lg text-sm min-h-[44px] flex items-center justify-center"
             >
               ← Volver
             </button>
             <button
               onClick={() => setPaso(4)}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-2 rounded-lg"
+              className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-2.5 rounded-lg text-sm min-h-[44px] flex items-center justify-center shadow"
             >
               Siguiente: Resumen y Finalizar →
             </button>
@@ -799,16 +817,16 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
             </div>
           </div>
 
-          <div className="flex justify-between pt-4">
+          <div className="flex flex-col-reverse sm:flex-row justify-between pt-4 gap-2.5">
             <button
               onClick={() => setPaso(3)}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded-lg"
+              className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-lg text-sm min-h-[44px] flex items-center justify-center"
             >
               ← Volver
             </button>
             <button
               onClick={finalizarCreacion}
-              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-8 py-2.5 rounded-lg text-lg flex items-center gap-2 shadow-lg shadow-emerald-950/50"
+              className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-6 sm:px-8 py-3 rounded-lg text-base sm:text-lg flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 min-h-[48px]"
             >
               <CheckCircle2 className="w-5 h-5" />
               ¡Guardar Personaje y Comenzar Aventura!

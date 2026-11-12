@@ -7,7 +7,7 @@ import { VisorCompendio } from '@/componentes/compendio/VisorCompendio';
 import { FichaPersonaje } from '@/esquemas/personaje';
 import {
   Sword, Dices, BookOpen, Users, Sparkles, Shield, Heart,
-  Flame, ArrowRight, Brain, Zap
+  Flame, ArrowRight, Brain, Zap, Home
 } from 'lucide-react';
 
 // Personaje de inicio por defecto listo para jugar
@@ -77,38 +77,46 @@ export default function PaginaPrincipal() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 p-4 sm:p-8 flex flex-col justify-between">
-      <div className="max-w-6xl mx-auto w-full space-y-12">
+    <div className="min-h-screen bg-[#070b14] text-slate-100 p-3 sm:p-8 pb-24 sm:pb-8 flex flex-col justify-between">
+      <div className="max-w-6xl mx-auto w-full space-y-6 sm:space-y-12">
         {/* Cabecera / Barra de Navegación */}
-        <header className="flex flex-wrap items-center justify-between border-b border-slate-800/80 pb-6 gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center font-black text-slate-950 text-xl shadow-lg shadow-amber-500/20">
+        <header className="flex flex-wrap items-center justify-between border-b border-slate-800/80 pb-4 sm:pb-6 gap-3 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center font-black text-slate-950 text-base sm:text-xl shadow-lg shadow-amber-500/20 shrink-0">
               5.5
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-tight text-slate-100 flex items-center gap-2">
-                D&D 5.5 Virtual Tabletop
-                <span className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold">
-                  Revisión 2024
+              <h1 className="text-base sm:text-xl font-black tracking-tight text-slate-100 flex items-center gap-1.5 sm:gap-2">
+                <span>D&D 5.5 VTT</span>
+                <span className="text-[10px] sm:text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 sm:px-2 py-0.5 rounded-full font-bold">
+                  2024
                 </span>
               </h1>
-              <p className="text-xs text-slate-400">
-                Plataforma Web con Bot DM Inteligente • Solo y Multijugador • Memoria Inmortal (Event Sourcing)
+              <p className="text-[11px] sm:text-xs text-slate-400 line-clamp-1 sm:line-clamp-none">
+                Plataforma Web con Bot DM Inteligente • Memoria Inmortal (Event Sourcing)
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-2">
             <button
               onClick={() => setVistaActual('compendio')}
-              className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors border ${
+                vistaActual === 'compendio'
+                  ? 'bg-amber-500/20 border-amber-500 text-amber-300'
+                  : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
+              }`}
             >
               <BookOpen className="w-3.5 h-3.5 text-amber-400" />
               Compendio Oficial 2024
             </button>
             <button
               onClick={() => setVistaActual('creador')}
-              className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors border ${
+                vistaActual === 'creador'
+                  ? 'bg-amber-500/20 border-amber-500 text-amber-300'
+                  : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
+              }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
               Crear Ficha 2024
@@ -152,34 +160,34 @@ export default function PaginaPrincipal() {
         )}
 
         {vistaActual === 'inicio' && (
-          <div className="space-y-12">
+          <div className="space-y-6 sm:space-y-12">
             {/* Hero Banner */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950/40 border border-slate-800 p-8 sm:p-12 shadow-2xl">
-              <div className="max-w-2xl space-y-4">
-                <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 px-3 py-1 rounded-full text-xs font-semibold">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950/40 border border-slate-800 p-5 sm:p-12 shadow-2xl">
+              <div className="max-w-2xl space-y-3 sm:space-y-4">
+                <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold">
                   <Brain className="w-3.5 h-3.5" />
                   Arquitectura de Memoria Inmortal contra la Amnesia del LLM
                 </div>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-100 tracking-tight leading-tight">
                   Juega D&D 5.5 con un Bot DM que <span className="text-amber-400 underline decoration-amber-500/50">jamás olvida</span> tus decisiones.
                 </h2>
-                <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                  Basado en una arquitectura de <strong>Ledger de Hechos Canónicos (Event Sourcing)</strong> y separación de estado determinista. 
-                  En cada turno se inyectan solo los hechos relevantes a la escena activa, garantizando consistencia absoluta, mínimo consumo de tokens y cero alucinaciones.
+                <p className="text-slate-300 text-xs sm:text-base leading-relaxed">
+                  Basado en un <strong>Ledger de Hechos Canónicos (Event Sourcing)</strong>. 
+                  En cada turno se inyectan solo los hechos relevantes a la escena activa, garantizando consistencia absoluta y cero alucinaciones.
                 </p>
 
-                <div className="flex flex-wrap items-center gap-3 pt-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2 sm:pt-3">
                   <button
                     onClick={() => setVistaActual('mesa')}
-                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-3 rounded-xl flex items-center gap-2 text-base transition-all shadow-lg shadow-amber-500/20"
+                    className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-3.5 sm:py-3 rounded-xl flex items-center justify-center gap-2 text-sm sm:text-base transition-all shadow-lg shadow-amber-500/20 min-h-[48px]"
                   >
                     <Sword className="w-5 h-5" />
-                    Entrar a la Mesa Virtual de Juego
+                    Entrar a la Mesa Virtual
                     <ArrowRight className="w-4 h-4 ml-1" />
                   </button>
                   <button
                     onClick={() => setVistaActual('creador')}
-                    className="bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold px-5 py-3 rounded-xl text-sm border border-slate-700 transition-colors"
+                    className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold px-5 py-3.5 sm:py-3 rounded-xl text-sm border border-slate-700 transition-colors flex items-center justify-center min-h-[48px]"
                   >
                     Crear Nuevo Personaje
                   </button>
@@ -188,54 +196,54 @@ export default function PaginaPrincipal() {
             </div>
 
             {/* Tres Pilares Tecnológicos */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-3">
-                <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                  <Brain className="w-5 h-5" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              <div className="bg-slate-950 p-4 sm:p-6 rounded-xl border border-slate-800 space-y-2 sm:space-y-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Brain className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="font-bold text-slate-100 text-lg">Memoria Inmortal (Event Sourcing)</h3>
+                <h3 className="font-bold text-slate-100 text-base sm:text-lg">Memoria Inmortal (Event Sourcing)</h3>
                 <p className="text-slate-400 text-xs leading-relaxed">
                   Las decisiones de los jugadores, promesas a PNJs y alianzas se registran en una bitácora inmutable. No se pierde contexto al avanzar la campaña y no se satura la ventana de tokens.
                 </p>
               </div>
 
-              <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-3">
-                <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-                  <BookOpen className="w-5 h-5" />
+              <div className="bg-slate-950 p-4 sm:p-6 rounded-xl border border-slate-800 space-y-2 sm:space-y-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="font-bold text-slate-100 text-lg">12 Clases y 48 Subclases 2024</h3>
+                <h3 className="font-bold text-slate-100 text-base sm:text-lg">12 Clases y 48 Subclases 2024</h3>
                 <p className="text-slate-400 text-xs leading-relaxed">
                   12 archivos modulares en TypeScript con datos canónicos del PHB 2024: dados de golpe, progresión nivel 1-20, maestrías de armas tácticas y las 4 subclases desbloqueadas a nivel 3.
                 </p>
               </div>
 
-              <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-3">
-                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                  <Users className="w-5 h-5" />
+              <div className="bg-slate-950 p-4 sm:p-6 rounded-xl border border-slate-800 space-y-2 sm:space-y-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="font-bold text-slate-100 text-lg">Solo y Multijugador con Amigos</h3>
+                <h3 className="font-bold text-slate-100 text-base sm:text-lg">Solo y Multijugador con Amigos</h3>
                 <p className="text-slate-400 text-xs leading-relaxed">
-                  Juega en solitario con el Bot DM como compañero narrativo o crea una sala multijugador compartiendo un código de invitación de 6 caracteres con tiradas en tiempo real.
+                  Juega en solitario con el Bot DM como compañero narrativo o crea una sala multijugador compartiendo un código de invitación con tiradas en tiempo real.
                 </p>
               </div>
             </div>
 
             {/* Ficha Rápida del Personaje Listo */}
-            <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 font-bold text-lg">
+            <div className="bg-slate-950 p-4 sm:p-6 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 font-bold text-base sm:text-lg shrink-0">
                   🛡️
                 </div>
-                <div>
-                  <h4 className="font-bold text-slate-100 text-base">{personajeActivo.nombre}</h4>
-                  <p className="text-xs text-slate-400">
-                    {personajeActivo.especie}{personajeActivo.legadoEspecie ? ` (${personajeActivo.legadoEspecie})` : ''} • {personajeActivo.trasfondo} • {personajeActivo.claseId} (Nv {personajeActivo.nivel}) • PG: {personajeActivo.puntosGolpeActuales}/{personajeActivo.puntosGolpeMaximos} • CA: {personajeActivo.claseArmadura} • Maestría: Roce (Graze)
+                <div className="min-w-0">
+                  <h4 className="font-bold text-slate-100 text-sm sm:text-base truncate">{personajeActivo.nombre}</h4>
+                  <p className="text-xs text-slate-400 line-clamp-2">
+                    {personajeActivo.especie}{personajeActivo.legadoEspecie ? ` (${personajeActivo.legadoEspecie})` : ''} • {personajeActivo.trasfondo} • {personajeActivo.claseId} (Nv {personajeActivo.nivel}) • PG: {personajeActivo.puntosGolpeActuales}/{personajeActivo.puntosGolpeMaximos} • CA: {personajeActivo.claseArmadura} • Maestría: Roce
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setVistaActual('mesa')}
-                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-colors"
+                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors min-h-[44px] shrink-0"
               >
                 Jugar con este Personaje →
               </button>
@@ -245,9 +253,54 @@ export default function PaginaPrincipal() {
       </div>
 
       {/* Pie de Página */}
-      <footer className="mt-12 border-t border-slate-800/60 pt-6 text-center text-xs text-slate-500">
+      <footer className="mt-8 sm:mt-12 border-t border-slate-800/60 pt-4 sm:pt-6 text-center text-[11px] sm:text-xs text-slate-500">
         D&D 5.5 (Revisión 2024) Plataforma de Rol Web • Diseñado con Next.js, Zod y Vitest.
       </footer>
+
+      {/* Barra de Navegación Inferior Móvil (Sticky Phone-First Tab Bar) */}
+      <nav aria-label="Navegación principal en móvil" className="fixed bottom-0 left-0 right-0 z-50 bg-slate-950/95 backdrop-blur-lg border-t border-slate-800 flex justify-around items-center py-2 px-2 pb-safe sm:hidden">
+        <button
+          type="button"
+          onClick={() => setVistaActual('inicio')}
+          className={`flex-1 flex flex-col items-center justify-center py-1 min-h-[44px] transition-all ${
+            vistaActual === 'inicio' ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Home className="w-5 h-5" />
+          <span className="text-[10px] mt-0.5">Inicio</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setVistaActual('mesa')}
+          className="flex-1 flex flex-col items-center justify-center py-1 min-h-[44px] transition-all text-slate-400 hover:text-slate-200"
+        >
+          <Sword className="w-5 h-5" />
+          <span className="text-[10px] mt-0.5">Mesa VTT</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setVistaActual('creador')}
+          className={`flex-1 flex flex-col items-center justify-center py-1 min-h-[44px] transition-all ${
+            vistaActual === 'creador' ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Sparkles className="w-5 h-5" />
+          <span className="text-[10px] mt-0.5">Creador PJ</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setVistaActual('compendio')}
+          className={`flex-1 flex flex-col items-center justify-center py-1 min-h-[44px] transition-all ${
+            vistaActual === 'compendio' ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <BookOpen className="w-5 h-5" />
+          <span className="text-[10px] mt-0.5">Compendio</span>
+        </button>
+      </nav>
     </div>
   );
 }

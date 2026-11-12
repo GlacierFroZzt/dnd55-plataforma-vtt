@@ -20,22 +20,22 @@ export function VisorCompendio() {
   const especieActual = TODAS_LAS_ESPECIES_55.find((e) => e.id === especieSeleccionadaId) || TODAS_LAS_ESPECIES_55[0];
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-2xl max-w-6xl mx-auto">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-6 shadow-2xl max-w-6xl mx-auto">
       {/* Selector de Pestañas */}
-      <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-4 mb-6 gap-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-4 mb-5 gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-amber-400 flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-amber-400" />
-            Compendio Oficial D&D 5.5 (Revisión 2024)
+          <h2 className="text-xl sm:text-2xl font-bold text-amber-400 flex items-center gap-2">
+            <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
+            Compendio Oficial D&D 5.5
           </h2>
-          <p className="text-sm text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
             10 Especies con Legados, 16 Trasfondos Oficiales, 12 Clases, 48 Subclases, Maestrías y Dotes.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-1 bg-slate-950 p-1.5 rounded-lg border border-slate-800 text-xs font-semibold">
+        <div className="flex overflow-x-auto no-scrollbar gap-1.5 bg-slate-950 p-1.5 rounded-lg border border-slate-800 text-xs font-semibold w-full md:w-auto shrink-0">
           {[
-            { id: 'clases', label: '12 Clases & 48 Subclases' },
+            { id: 'clases', label: '12 Clases & Subclases' },
             { id: 'especies', label: '10 Especies & Legados' },
             { id: 'trasfondos', label: '16 Trasfondos Oficiales' },
             { id: 'maestrias', label: '8 Maestrías de Armas' },
@@ -46,7 +46,7 @@ export function VisorCompendio() {
             <button
               key={tab.id}
               onClick={() => setPestana(tab.id as any)}
-              className={`px-3 py-1.5 rounded-md transition-all ${
+              className={`px-3 py-2 rounded-md transition-all shrink-0 whitespace-nowrap min-h-[38px] flex items-center ${
                 pestana === tab.id
                   ? 'bg-amber-500 text-slate-950 font-bold shadow'
                   : 'text-slate-400 hover:text-slate-200'
@@ -60,33 +60,52 @@ export function VisorCompendio() {
 
       {/* PESTAÑA 1: Clases y Subclases */}
       {pestana === 'clases' && (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <div className="md:col-span-4 space-y-1.5 max-h-[600px] overflow-y-auto pr-1">
+        <div className="space-y-3">
+          {/* Selector horizontal rápido en móvil */}
+          <div className="flex md:hidden overflow-x-auto no-scrollbar gap-1.5 pb-1">
             {TODAS_LAS_CLASES_55.map((c) => (
               <button
                 key={c.id}
+                type="button"
                 onClick={() => setClaseSeleccionadaId(c.id)}
-                className={`w-full text-left p-3 rounded-lg border transition-all flex items-center justify-between ${
+                className={`px-3 py-1.5 rounded-lg border text-xs whitespace-nowrap font-bold shrink-0 transition-all min-h-[38px] ${
                   claseSeleccionadaId === c.id
-                    ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                    : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                    ? 'bg-amber-500 text-slate-950 border-amber-500 shadow'
+                    : 'bg-slate-950 border-slate-800 text-slate-300'
                 }`}
               >
-                <div>
-                  <span className="font-bold block">{c.nombre}</span>
-                  <span className="text-xs text-slate-500">{c.nombreOriginal}</span>
-                </div>
-                <div className="text-right text-xs">
-                  <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono font-bold block">
-                    {c.dadoGolpe}
-                  </span>
-                  <span className="text-[10px] text-slate-400">4 subclases</span>
-                </div>
+                {c.nombre} ({c.dadoGolpe})
               </button>
             ))}
           </div>
 
-          <div className="md:col-span-8 bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div className="hidden md:block md:col-span-4 space-y-1.5 max-h-[600px] overflow-y-auto pr-1">
+              {TODAS_LAS_CLASES_55.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setClaseSeleccionadaId(c.id)}
+                  className={`w-full text-left p-3 rounded-lg border transition-all flex items-center justify-between ${
+                    claseSeleccionadaId === c.id
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-300'
+                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                  }`}
+                >
+                  <div>
+                    <span className="font-bold block">{c.nombre}</span>
+                    <span className="text-xs text-slate-500">{c.nombreOriginal}</span>
+                  </div>
+                  <div className="text-right text-xs">
+                    <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono font-bold block">
+                      {c.dadoGolpe}
+                    </span>
+                    <span className="text-[10px] text-slate-400">4 subclases</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="col-span-1 md:col-span-8 bg-slate-950 p-4 sm:p-6 rounded-xl border border-slate-800 space-y-5 sm:space-y-6">
             <div className="border-b border-slate-800 pb-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-slate-100">{claseActual.nombre}</h3>
@@ -197,41 +216,61 @@ export function VisorCompendio() {
             </div>
           </div>
         </div>
+      </div>
       )}
 
       {/* PESTAÑA 2: 10 Especies y Legados */}
       {pestana === 'especies' && (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          {/* Lista de las 10 especies */}
-          <div className="md:col-span-4 space-y-1.5 max-h-[600px] overflow-y-auto pr-1">
+        <div className="space-y-3">
+          {/* Selector horizontal rápido en móvil */}
+          <div className="flex md:hidden overflow-x-auto no-scrollbar gap-1.5 pb-1">
             {TODAS_LAS_ESPECIES_55.map((esp) => (
               <button
                 key={esp.id}
+                type="button"
                 onClick={() => setEspecieSeleccionadaId(esp.id)}
-                className={`w-full text-left p-3 rounded-lg border transition-all flex items-center justify-between ${
+                className={`px-3 py-1.5 rounded-lg border text-xs whitespace-nowrap font-bold shrink-0 transition-all min-h-[38px] ${
                   especieSeleccionadaId === esp.id
-                    ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                    : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                    ? 'bg-amber-500 text-slate-950 border-amber-500 shadow'
+                    : 'bg-slate-950 border-slate-800 text-slate-300'
                 }`}
               >
-                <div>
-                  <span className="font-bold block">{esp.nombre}</span>
-                  <span className="text-xs text-slate-500">{esp.nombreOriginal}</span>
-                </div>
-                <div className="text-right text-xs">
-                  <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-bold block">
-                    {esp.velocidadPies} ft
-                  </span>
-                  <span className="text-[10px] text-amber-400">
-                    {esp.legados.length > 0 ? `${esp.legados.length} legados` : 'Versátil'}
-                  </span>
-                </div>
+                {esp.nombre}
               </button>
             ))}
           </div>
 
-          {/* Detalle de la especie y sus legados */}
-          <div className="md:col-span-8 bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            {/* Lista de las 10 especies en escritorio */}
+            <div className="hidden md:block md:col-span-4 space-y-1.5 max-h-[600px] overflow-y-auto pr-1">
+              {TODAS_LAS_ESPECIES_55.map((esp) => (
+                <button
+                  key={esp.id}
+                  onClick={() => setEspecieSeleccionadaId(esp.id)}
+                  className={`w-full text-left p-3 rounded-lg border transition-all flex items-center justify-between ${
+                    especieSeleccionadaId === esp.id
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-300'
+                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                  }`}
+                >
+                  <div>
+                    <span className="font-bold block">{esp.nombre}</span>
+                    <span className="text-xs text-slate-500">{esp.nombreOriginal}</span>
+                  </div>
+                  <div className="text-right text-xs">
+                    <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-bold block">
+                      {esp.velocidadPies} ft
+                    </span>
+                    <span className="text-[10px] text-amber-400">
+                      {esp.legados.length > 0 ? `${esp.legados.length} legados` : 'Versátil'}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Detalle de la especie y sus legados */}
+            <div className="col-span-1 md:col-span-8 bg-slate-950 p-4 sm:p-6 rounded-xl border border-slate-800 space-y-5 sm:space-y-6">
             <div className="border-b border-slate-800 pb-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
@@ -317,14 +356,15 @@ export function VisorCompendio() {
             )}
           </div>
         </div>
+      </div>
       )}
 
       {/* PESTAÑA 3: 16 Trasfondos Oficiales */}
       {pestana === 'trasfondos' && (
         <div>
-          <div className="mb-4 text-xs text-slate-400 flex items-center justify-between">
+          <div className="mb-4 text-xs text-slate-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <span>En D&D 2024, el trasfondo otorga la Dote de Origen, tres puntuaciones a mejorar (+2/+1 o +1/+1/+1), competencias y oro inicial.</span>
-            <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full font-bold">
+            <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full font-bold self-start sm:self-auto shrink-0">
               16 Trasfondos Oficiales
             </span>
           </div>
