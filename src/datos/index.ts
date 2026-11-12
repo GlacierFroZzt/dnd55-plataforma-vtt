@@ -6,3 +6,4 @@ export * from './clases';
 export * from './dotes';
 export * from './especies';
 export * from './trasfondos';
+export * from './builds';

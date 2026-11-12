@@ -8,5 +8,6 @@ export * from './clase';
 export * from './dote';
 export * from './especie';
 export * from './trasfondo';
+export * from './buildSugerida';
 export * from './campana';
 export * from './personaje';

@@ -10,7 +10,9 @@ import { CATALOGO_ARMAS_55 } from '@/datos/armas';
 import { MAESTRIAS_ARMAS_55 } from '@/datos/maestrias';
 import { calcularModificadorCaracteristica, calcularBonificadorCompetencia } from '@/motor/reglas/calculadorD20';
 import { calcularClaseArmadura } from '@/motor/reglas/calculadorCA';
-import { Shield, Sword, Heart, Sparkles, Award, CheckCircle2, Compass, Feather } from 'lucide-react';
+import { Shield, Sword, Heart, Sparkles, Award, CheckCircle2, Compass, Feather, Zap } from 'lucide-react';
+import { DICCIONARIO_BUILDS_POR_CLASE } from '@/datos/builds';
+import { BuildSugerida } from '@/esquemas/buildSugerida';
 
 interface Props {
   onGuardarPersonaje: (pj: FichaPersonaje) => void;
@@ -70,6 +72,35 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
     if (tr?.doteOrigenId && DOTES_ORIGEN_55[tr.doteOrigenId]) {
       setDoteOrigen(tr.doteOrigenId);
     }
+  };
+
+  // Aplicar Build Sugerida para la clase seleccionada
+  const aplicarBuildSugerida = (b: BuildSugerida) => {
+    setFuerza(b.puntuaciones.fuerza);
+    setDestreza(b.puntuaciones.destreza);
+    setConstitucion(b.puntuaciones.constitucion);
+    setInteligencia(b.puntuaciones.inteligencia);
+    setSabiduria(b.puntuaciones.sabiduria);
+    setCarisma(b.puntuaciones.carisma);
+    if (b.armasRecomendadas?.[0] && CATALOGO_ARMAS_55[b.armasRecomendadas[0]]) {
+      setArmaPrincipal(b.armasRecomendadas[0]);
+    }
+    if (b.doteOrigenRecomendada && DOTES_ORIGEN_55[b.doteOrigenRecomendada]) {
+      setDoteOrigen(b.doteOrigenRecomendada);
+    }
+    if (b.subclaseRecomendada && nivel >= 3) {
+      setSubclaseId(b.subclaseRecomendada);
+    }
+  };
+
+  // Aplicar matriz estándar clásica (15, 14, 13, 12, 10, 8)
+  const aplicarMatrizEstandar = () => {
+    setFuerza(15);
+    setDestreza(14);
+    setConstitucion(13);
+    setInteligencia(10);
+    setSabiduria(12);
+    setCarisma(8);
   };
 
   // Cálculos automáticos 2024
@@ -493,6 +524,109 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
                 </div>
               );
             })}
+          </div>
+
+          {/* PRESETS RÁPIDOS Y BUILDS SUGERIDAS */}
+          <div className="bg-slate-950/80 p-4 rounded-xl border border-amber-500/30 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div>
+                <h4 className="text-sm font-bold text-amber-400 flex items-center gap-1.5">
+                  <Zap className="w-4 h-4 text-amber-400" />
+                  Builds Sugeridas para {claseActual.nombre} (PHB 2024)
+                </h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Distribuciones oficiales optimizadas con trasfondos, armas y dotes recomendadas.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={aplicarMatrizEstandar}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-1.5 rounded-lg border border-slate-700 transition-colors"
+                >
+                  Matriz Estándar (15, 14, 13...)
+                </button>
+              </div>
+            </div>
+
+            {/* Tarjetas de builds sugeridas para esta clase */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {(DICCIONARIO_BUILDS_POR_CLASE[claseId] || []).map((build) => {
+                const esCoincidente =
+                  fuerza === build.puntuaciones.fuerza &&
+                  destreza === build.puntuaciones.destreza &&
+                  constitucion === build.puntuaciones.constitucion &&
+                  inteligencia === build.puntuaciones.inteligencia &&
+                  sabiduria === build.puntuaciones.sabiduria &&
+                  carisma === build.puntuaciones.carisma;
+
+                return (
+                  <div
+                    key={build.id}
+                    className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
+                      esCoincidente
+                        ? 'bg-amber-950/20 border-amber-500 shadow-md ring-1 ring-amber-500/40'
+                        : 'bg-slate-900/90 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-slate-100 text-sm">{build.nombre}</span>
+                        <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-semibold uppercase">
+                          {build.enfoque}
+                        </span>
+                      </div>
+                      <span className="text-xs text-amber-300/80 font-mono block mt-0.5">{build.subtitulo}</span>
+                      <p className="text-xs text-slate-400 mt-1 line-clamp-2">{build.descripcion}</p>
+
+                      {/* Mini Matriz */}
+                      <div className="grid grid-cols-6 gap-1 mt-2.5 text-center">
+                        {[
+                          { k: 'FUE', v: build.puntuaciones.fuerza },
+                          { k: 'DES', v: build.puntuaciones.destreza },
+                          { k: 'CON', v: build.puntuaciones.constitucion },
+                          { k: 'INT', v: build.puntuaciones.inteligencia },
+                          { k: 'SAB', v: build.puntuaciones.sabiduria },
+                          { k: 'CAR', v: build.puntuaciones.carisma },
+                        ].map((stat) => (
+                          <div key={stat.k} className="bg-slate-950 p-1 rounded border border-slate-800">
+                            <span className="text-[9px] text-slate-500 block font-bold">{stat.k}</span>
+                            <span className="font-bold text-amber-400 text-xs">{stat.v}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-2 text-[11px] text-slate-400 space-y-0.5 border-t border-slate-800/80 pt-2">
+                        <div><span className="text-slate-500 font-semibold">Rol:</span> {build.rolRecomendado}</div>
+                        <div><span className="text-slate-500 font-semibold">Dote:</span> {DOTES_ORIGEN_55[build.doteOrigenRecomendada]?.nombre || build.doteOrigenRecomendada}</div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => aplicarBuildSugerida(build)}
+                      className={`w-full mt-3 font-bold py-1.5 px-3 rounded text-xs transition-all flex items-center justify-center gap-1.5 ${
+                        esCoincidente
+                          ? 'bg-emerald-600 text-white cursor-default'
+                          : 'bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 hover:border-amber-500'
+                      }`}
+                    >
+                      {esCoincidente ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                          ¡Build Aplicada Activa!
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-3.5 h-3.5" />
+                          Aplicar Puntuaciones ({build.nombre})
+                        </>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex justify-between pt-4">

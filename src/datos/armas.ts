@@ -137,4 +137,72 @@ export const CATALOGO_ARMAS_55: Record<string, DefinicionArma> = {
     precioPo: 50,
     alcancePies: { normal: 100, maximo: 400 },
   },
+  estoque: {
+    id: 'estoque',
+    nombre: 'Estoque',
+    categoria: 'marcialCuerpoACuerpo',
+    dadoDano: '1d8',
+    tipoDano: 'perforante',
+    propiedades: ['sutileza'],
+    maestriaPorDefecto: 'hostigamiento', // Vex
+    pesoLibras: 2,
+    precioPo: 25,
+  },
+  maza: {
+    id: 'maza',
+    nombre: 'Maza',
+    categoria: 'simpleCuerpoACuerpo',
+    dadoDano: '1d6',
+    tipoDano: 'contundente',
+    propiedades: [],
+    maestriaPorDefecto: 'minar', // Sap
+    pesoLibras: 4,
+    precioPo: 5,
+  },
+  lanza: {
+    id: 'lanza',
+    nombre: 'Lanza',
+    categoria: 'simpleCuerpoACuerpo',
+    dadoDano: '1d6',
+    tipoDano: 'perforante',
+    propiedades: ['arrojadiza', 'versatil'],
+    maestriaPorDefecto: 'minar', // Sap
+    pesoLibras: 3,
+    precioPo: 1,
+    alcancePies: { normal: 20, maximo: 60 },
+  },
+  ballestaLigera: {
+    id: 'ballestaLigera',
+    nombre: 'Ballesta Ligera',
+    categoria: 'simpleADistancia',
+    dadoDano: '1d8',
+    tipoDano: 'perforante',
+    propiedades: ['municion', 'recarga', 'dosManos'],
+    maestriaPorDefecto: 'ralentizar', // Slow
+    pesoLibras: 5,
+    precioPo: 25,
+    alcancePies: { normal: 80, maximo: 320 },
+  },
+  hachaGuerra: {
+    id: 'hachaGuerra',
+    nombre: 'Hacha de Guerra',
+    categoria: 'marcialCuerpoACuerpo',
+    dadoDano: '1d8',
+    tipoDano: 'cortante',
+    propiedades: ['versatil'],
+    maestriaPorDefecto: 'derribo', // Topple
+    pesoLibras: 4,
+    precioPo: 10,
+  },
+  garrote: {
+    id: 'garrote',
+    nombre: 'Garrote',
+    categoria: 'simpleCuerpoACuerpo',
+    dadoDano: '1d4',
+    tipoDano: 'contundente',
+    propiedades: ['ligera'],
+    maestriaPorDefecto: 'derribo', // Topple
+    pesoLibras: 2,
+    precioPo: 0.1,
+  },
 };

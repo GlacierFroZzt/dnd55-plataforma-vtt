@@ -8,7 +8,8 @@ import { MAESTRIAS_ARMAS_55 } from '@/datos/maestrias';
 import { CONDICIONES_55 } from '@/datos/condiciones';
 import { ACCIONES_COMBATE_55 } from '@/datos/acciones';
 import { TODAS_LAS_DOTES_55, DOTES_ORIGEN_55 } from '@/datos/dotes';
-import { BookOpen, Shield, Sword, Sparkles, Award, Compass, Feather, Flame, Coins, Wrench } from 'lucide-react';
+import { BookOpen, Shield, Sword, Sparkles, Award, Compass, Feather, Flame, Coins, Wrench, Zap } from 'lucide-react';
+import { DICCIONARIO_BUILDS_POR_CLASE } from '@/datos/builds';
 
 export function VisorCompendio() {
   const [pestana, setPestana] = useState<'clases' | 'especies' | 'trasfondos' | 'maestrias' | 'condiciones' | 'acciones' | 'dotes'>('clases');
@@ -141,6 +142,53 @@ export function VisorCompendio() {
                             {r.nombre} (Nvl {r.nivel})
                           </span>
                         ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* BUILDS SUGERIDAS PARA LA CLASE */}
+            <div>
+              <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <Zap className="w-4 h-4 text-amber-400" /> Builds Sugeridas Oficiales 2024 para {claseActual.nombre}
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {(DICCIONARIO_BUILDS_POR_CLASE[claseActual.id] || []).map((b) => (
+                  <div key={b.id} className="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-100 text-sm">{b.nombre}</span>
+                      <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono font-semibold uppercase">
+                        {b.enfoque}
+                      </span>
+                    </div>
+                    <span className="text-xs text-amber-300/80 font-mono block">{b.subtitulo}</span>
+                    <p className="text-xs text-slate-400">{b.descripcion}</p>
+
+                    {/* Matriz de puntuaciones */}
+                    <div className="grid grid-cols-6 gap-1 text-center">
+                      {[
+                        { k: 'FUE', v: b.puntuaciones.fuerza },
+                        { k: 'DES', v: b.puntuaciones.destreza },
+                        { k: 'CON', v: b.puntuaciones.constitucion },
+                        { k: 'INT', v: b.puntuaciones.inteligencia },
+                        { k: 'SAB', v: b.puntuaciones.sabiduria },
+                        { k: 'CAR', v: b.puntuaciones.carisma },
+                      ].map((s) => (
+                        <div key={s.k} className="bg-slate-950 p-1.5 rounded border border-slate-800">
+                          <span className="text-[9px] text-slate-500 block font-bold">{s.k}</span>
+                          <span className="font-bold text-amber-400 text-xs">{s.v}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="text-[11px] space-y-1 pt-1.5 border-t border-slate-800/80 text-slate-300">
+                      <div><strong className="text-slate-400">Rol:</strong> {b.rolRecomendado}</div>
+                      <div><strong className="text-slate-400">Dote sugerida:</strong> {DOTES_ORIGEN_55[b.doteOrigenRecomendada]?.nombre || b.doteOrigenRecomendada}</div>
+                      <div><strong className="text-slate-400">Armas:</strong> {b.armasRecomendadas.join(', ')}</div>
+                      <div className="text-[10px] text-slate-400 italic mt-1 bg-slate-950/60 p-2 rounded border border-slate-800/60">
+                        💡 {b.consejosTacticos[0]}
                       </div>
                     </div>
                   </div>
