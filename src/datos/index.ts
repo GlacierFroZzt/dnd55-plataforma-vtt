@@ -4,3 +4,5 @@ export * from './maestrias';
 export * from './armas';
 export * from './clases';
 export * from './dotes';
+export * from './especies';
+export * from './trasfondos';

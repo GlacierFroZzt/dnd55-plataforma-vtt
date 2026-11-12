@@ -3,12 +3,14 @@
 import React, { useState } from 'react';
 import { FichaPersonaje } from '@/esquemas/personaje';
 import { TODAS_LAS_CLASES_55, DICCIONARIO_CLASES_55 } from '@/datos/clases';
+import { TODAS_LAS_ESPECIES_55, DICCIONARIO_ESPECIES_55 } from '@/datos/especies';
+import { TODOS_LOS_TRASFONDOS_55, DICCIONARIO_TRASFONDOS_55 } from '@/datos/trasfondos';
 import { DOTES_ORIGEN_55 } from '@/datos/dotes/dotesOrigen';
 import { CATALOGO_ARMAS_55 } from '@/datos/armas';
 import { MAESTRIAS_ARMAS_55 } from '@/datos/maestrias';
 import { calcularModificadorCaracteristica, calcularBonificadorCompetencia } from '@/motor/reglas/calculadorD20';
 import { calcularClaseArmadura } from '@/motor/reglas/calculadorCA';
-import { Shield, Sword, Heart, Sparkles, Wand2, Award, CheckCircle2 } from 'lucide-react';
+import { Shield, Sword, Heart, Sparkles, Award, CheckCircle2, Compass, Feather } from 'lucide-react';
 
 interface Props {
   onGuardarPersonaje: (pj: FichaPersonaje) => void;
@@ -19,31 +21,67 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
   const [paso, setPaso] = useState<number>(1);
   const [nombre, setNombre] = useState('Valen');
   const [jugador, setJugador] = useState('Aventurero');
-  const [especie, setEspecie] = useState('Humano');
-  const [trasfondo, setTrasfondo] = useState('Soldado');
+  
+  // Especie y Legado 2024
+  const [especieId, setEspecieId] = useState('elfo');
+  const [legadoId, setLegadoId] = useState('drow');
+  
+  // Trasfondo 2024
+  const [trasfondoId, setTrasfondoId] = useState('soldado');
+  
+  // Clase y Subclase 2024
   const [claseId, setClaseId] = useState('guerrero');
   const [subclaseId, setSubclaseId] = useState('campeon');
   const [nivel, setNivel] = useState(3);
   
-  // Características base
+  // Puntuaciones de características base
   const [fuerza, setFuerza] = useState(16);
   const [destreza, setDestreza] = useState(14);
-  const [constitucion, setConstitucion] = useState(15);
+  const [constitucion, setConstitucion] = useState(14);
   const [inteligencia, setInteligencia] = useState(10);
   const [sabiduria, setSabiduria] = useState(12);
-  const [carisma, setCarisma] = useState(8);
+  const [carisma, setCarisma] = useState(10);
 
-  // Armas y Maestrías
+  // Armas y Dote de Origen
   const [armaPrincipal, setArmaPrincipal] = useState('espadon');
-  const [doteOrigen, setDoteOrigen] = useState('alerta');
+  const [doteOrigen, setDoteOrigen] = useState('atacanteSalvaje');
 
+  // Objetos de datos actuales
+  const especieActual = DICCIONARIO_ESPECIES_55[especieId] || TODAS_LAS_ESPECIES_55[0];
+  const legadoActual = especieActual.legados?.find((l) => l.id === legadoId) || especieActual.legados?.[0];
+  const trasfondoActual = DICCIONARIO_TRASFONDOS_55[trasfondoId] || TODOS_LOS_TRASFONDOS_55[0];
   const claseActual = DICCIONARIO_CLASES_55[claseId] || DICCIONARIO_CLASES_55.guerrero;
+
+  // Cambiar especie y auto-ajustar su primer legado si tiene
+  const handleCambiarEspecie = (id: string) => {
+    setEspecieId(id);
+    const esp = DICCIONARIO_ESPECIES_55[id];
+    if (esp?.legados && esp.legados.length > 0) {
+      setLegadoId(esp.legados[0].id);
+    } else {
+      setLegadoId('');
+    }
+  };
+
+  // Cambiar trasfondo y sugerir su dote de origen oficial
+  const handleCambiarTrasfondo = (id: string) => {
+    setTrasfondoId(id);
+    const tr = DICCIONARIO_TRASFONDOS_55[id];
+    if (tr?.doteOrigenId && DOTES_ORIGEN_55[tr.doteOrigenId]) {
+      setDoteOrigen(tr.doteOrigenId);
+    }
+  };
 
   // Cálculos automáticos 2024
   const modCon = calcularModificadorCaracteristica(constitucion);
   const modDes = calcularModificadorCaracteristica(destreza);
   const dadoGolpeNum = parseInt(claseActual.dadoGolpe.replace('d', ''));
-  const pgMax = dadoGolpeNum + modCon + (nivel - 1) * (Math.floor(dadoGolpeNum / 2) + 1 + modCon);
+  
+  // Resiliencia enana (+1 PG por nivel si es enano)
+  const bonifPGEnano = especieId === 'enano' ? nivel : 0;
+  // Dote duro (+2 PG por nivel si tiene dote duro)
+  const bonifPGDuro = doteOrigen === 'duro' ? nivel * 2 : 0;
+  const pgMax = dadoGolpeNum + modCon + (nivel - 1) * (Math.floor(dadoGolpeNum / 2) + 1 + modCon) + bonifPGEnano + bonifPGDuro;
   
   const caCalculada = calcularClaseArmadura({
     destrezaMod: modDes,
@@ -52,13 +90,26 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
     tieneEscudo: false,
   });
 
+  // Velocidad según especie y legado
+  let velocidadFinal = especieActual.velocidadPies;
+  if (especieId === 'elfo' && legadoId === 'elfo_bosques') {
+    velocidadFinal = 35;
+  }
+
+  // Visión en la oscuridad
+  let visionFinal = especieActual.visionEnOscuridadPies;
+  if (especieId === 'elfo' && legadoId === 'drow') {
+    visionFinal = 120;
+  }
+
   const finalizarCreacion = () => {
     const nuevoPj: FichaPersonaje = {
       id: `pj_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       nombre,
       jugadorNombre: jugador,
-      especie,
-      trasfondo,
+      especie: especieActual.nombre,
+      legadoEspecie: legadoActual ? legadoActual.nombre : undefined,
+      trasfondo: trasfondoActual.nombre,
       claseId,
       subclaseId: nivel >= 3 ? subclaseId : undefined,
       nivel,
@@ -75,7 +126,7 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
       puntosGolpeActuales: Math.max(1, pgMax),
       puntosGolpeTemporales: 0,
       claseArmadura: caCalculada,
-      velocidadPies: 30,
+      velocidadPies: velocidadFinal,
       iniciativaMod: modDes + (doteOrigen === 'alerta' ? calcularBonificadorCompetencia(nivel) : 0),
       inspiracionHeroica: true,
       dadosGolpeDisponibles: nivel,
@@ -83,67 +134,87 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
       tipoDadoGolpe: claseActual.dadoGolpe,
       salvacionesMuerte: { exitos: 0, fallos: 0 },
       salvacionesCompetentes: claseActual.salvacionesCompetentes,
-      habilidadesCompetentes: ['atletismo', 'intimidacion'],
+      habilidadesCompetentes: Array.from(new Set([
+        ...trasfondoActual.habilidadesCompetentes,
+        'atletismo',
+        'percepcion',
+      ])) as any,
       habilidadesExpertas: [],
       armasCompetentes: claseActual.competenciasIniciales.armas,
       armadurasCompetentes: claseActual.competenciasIniciales.armaduras,
-      herramientasCompetentes: [],
+      herramientasCompetentes: trasfondoActual.herramientasCompetentes,
       idiomas: ['Común'],
       maestriasArmasDesbloqueadas: [CATALOGO_ARMAS_55[armaPrincipal]?.maestriaPorDefecto || 'roce'],
       armasEquipadas: [armaPrincipal],
       armaduraEquipada: 'Cota de malla',
       escudoEquipado: false,
-      monedas: { cobre: 0, plata: 0, electro: 0, oro: 25, platino: 0 },
-      inventarioObjetos: ['Mochila de aventurero', 'Raciones de viaje', 'Antorchas (5)', 'Cuerda de cáñamo'],
+      monedas: { cobre: 0, plata: 0, electro: 0, oro: trasfondoActual.oroInicial || 25, platino: 0 },
+      inventarioObjetos: [
+        ...trasfondoActual.equipoSugerido,
+        'Mochila de aventurero',
+        'Raciones de viaje (5)',
+      ],
       espaciosConjuroMaximos: [0, 0, 0, 0, 0, 0, 0, 0, 0],
       espaciosConjuroGastados: [0, 0, 0, 0, 0, 0, 0, 0, 0],
       conjurosPreparados: [],
-      trucosConocidos: [],
+      trucosConocidos: legadoActual?.trucosOConjuros || [],
       condicionesActivas: [],
       nivelAgotamiento: 0,
       dotesIds: [doteOrigen],
-      rasgosEspeciales: claseActual.progresion
-        .filter((p) => p.nivel <= nivel)
-        .flatMap((p) => p.rasgos),
+      rasgosEspeciales: [
+        ...especieActual.rasgosBase.map((r) => r.nombre),
+        ...(legadoActual ? legadoActual.rasgos.map((r) => r.nombre) : []),
+        ...claseActual.progresion
+          .filter((p) => p.nivel <= nivel)
+          .flatMap((p) => p.rasgos),
+      ],
     };
 
     onGuardarPersonaje(nuevoPj);
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-4xl mx-auto shadow-2xl">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-5xl mx-auto shadow-2xl">
+      {/* Encabezado y Progreso */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-amber-400 flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-amber-400" />
-            Creador de Personaje D&D 5.5 (Revisión 2024)
+            Creador de Personajes D&D 5.5 (Revisión Oficial 2024)
           </h2>
           <p className="text-slate-400 text-sm">
-            Diseña tu aventurero con las 12 clases oficiales, 48 subclases, maestrías de armas y dotes de origen.
+            10 especies oficiales con sus legados, 16 trasfondos oficiales, 12 clases, 48 subclases y maestrías de armas.
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs font-semibold">
-          {[1, 2, 3, 4].map((n) => (
+          {[
+            { num: 1, label: 'Origen & Clase' },
+            { num: 2, label: 'Características' },
+            { num: 3, label: 'Equipo & Dotes' },
+            { num: 4, label: 'Finalizar' },
+          ].map((item) => (
             <span
-              key={n}
-              className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                paso === n
+              key={item.num}
+              className={`px-3 py-1.5 rounded-full flex items-center gap-1.5 ${
+                paso === item.num
                   ? 'bg-amber-500 text-slate-950 font-bold'
-                  : paso > n
+                  : paso > item.num
                   ? 'bg-emerald-600 text-white'
                   : 'bg-slate-800 text-slate-400'
               }`}
             >
-              {paso > n ? '✓' : n}
+              {paso > item.num ? '✓' : item.num}
+              <span className="hidden sm:inline">{item.label}</span>
             </span>
           ))}
         </div>
       </div>
 
-      {/* PASO 1: Identidad y Clase */}
+      {/* PASO 1: Identidad, Especie con Legados, Trasfondos y Clase */}
       {paso === 1 && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Nombres y Nivel */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">Nombre del Personaje</label>
               <input
@@ -162,63 +233,155 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500"
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Especie 2024 (Sin ASI)</label>
-              <select
-                value={especie}
-                onChange={(e) => setEspecie(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100"
-              >
-                <option value="Humano">Humano (Inspiración + Dote Origen)</option>
-                <option value="Elfo">Elfo (Trance + Visión Oscuridad 60)</option>
-                <option value="Enano">Enano (Sentido de la Piedra + Temple)</option>
-                <option value="Mediano">Mediano (Afortunado + Valiente)</option>
-                <option value="Goliat">Goliat (Nuevo PHB: Linaje Gigante)</option>
-                <option value="Orco">Orco (Nuevo PHB: Embestida + Resistencia)</option>
-                <option value="Aasimar">Aasimar (Nuevo PHB: Alas Radiantes)</option>
-                <option value="Tiefling">Tiefling (Legado Abisal/Infernal)</option>
-                <option value="Dracónido">Dracónido (Aliento Elemental 2024)</option>
-                <option value="Gnomo">Gnomo (Astucia Gnoma)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Trasfondo 2024 (+2/+1 ASI)</label>
-              <select
-                value={trasfondo}
-                onChange={(e) => setTrasfondo(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100"
-              >
-                <option value="Soldado">Soldado (FUE/CON - Dote Salvaje)</option>
-                <option value="Acólito">Acólito (SAB/CAR - Dote Mágico)</option>
-                <option value="Erudito">Erudito (INT/SAB - Dote Experto)</option>
-                <option value="Criminal">Criminal (DES/CON - Dote Alerta)</option>
-                <option value="Animador">Animador (CAR/DES - Dote Músico)</option>
-                <option value="Guía">Guía (SAB/DES - Dote Curandero)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Nivel Inicial</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Nivel Inicial (1-20)</label>
               <input
                 type="number"
                 min={1}
                 max={20}
                 value={nivel}
                 onChange={(e) => setNivel(parseInt(e.target.value) || 1)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 font-bold"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Selecciona una de las 12 Clases Oficiales 2024
+          {/* SELECCIÓN DE ESPECIE 2024 */}
+          <div className="bg-slate-950/70 p-4 rounded-xl border border-slate-800">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-semibold text-amber-300 flex items-center gap-1.5">
+                <Compass className="w-4 h-4" /> 1. Especie Oficial 2024 (10 Especies Oficiales)
+              </label>
+              <span className="text-xs text-slate-400">
+                Velocidad: {especieActual.velocidadPies} pies • Tamaño: {especieActual.tamano} • Visión Oscuridad: {especieActual.visionEnOscuridadPies} pies
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-4">
+              {TODAS_LAS_ESPECIES_55.map((esp) => (
+                <button
+                  key={esp.id}
+                  type="button"
+                  onClick={() => handleCambiarEspecie(esp.id)}
+                  className={`p-2.5 rounded-lg border text-left transition-all ${
+                    especieId === esp.id
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow'
+                      : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="font-bold text-sm">{esp.nombre}</div>
+                  <div className="text-[10px] text-slate-400">
+                    {esp.legados.length > 0 ? `${esp.legados.length} legados` : 'Rasgos versátiles'}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* SELECTOR DE LEGADOS DE LA ESPECIE (Si la especie tiene legados) */}
+            {especieActual.legados && especieActual.legados.length > 0 && (
+              <div className="bg-slate-900/90 p-4 rounded-lg border border-amber-500/40 mt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-bold text-amber-400 flex items-center gap-1.5">
+                    <Feather className="w-4 h-4" /> Legado / Linaje de {especieActual.nombre}
+                  </span>
+                  <span className="text-xs text-amber-300/80 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    Elige tu linaje
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                  {especieActual.legados.map((leg) => (
+                    <button
+                      key={leg.id}
+                      type="button"
+                      onClick={() => setLegadoId(leg.id)}
+                      className={`p-3 rounded-lg border text-left transition-all ${
+                        legadoId === leg.id
+                          ? 'bg-amber-500/20 border-amber-500 text-amber-200 shadow-md ring-1 ring-amber-500/50'
+                          : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="font-bold text-sm text-slate-100">{leg.nombre}</div>
+                      <p className="text-xs text-slate-400 mt-1 line-clamp-2">{leg.descripcion}</p>
+                      {leg.resistenciaDanio && (
+                        <div className="mt-2 text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                          <Shield className="w-3 h-3" /> Resistencia: {leg.resistenciaDanio.join(', ')}
+                        </div>
+                      )}
+                      {leg.trucosOConjuros && (
+                        <div className="mt-1 text-[11px] text-sky-400 font-mono">
+                          ✨ {leg.trucosOConjuros.join(' • ')}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SELECCIÓN DE TRASFONDO 2024 */}
+          <div className="bg-slate-950/70 p-4 rounded-xl border border-slate-800">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-semibold text-amber-300 flex items-center gap-1.5">
+                <Award className="w-4 h-4" /> 2. Trasfondo Oficial 2024 (16 Trasfondos Oficiales)
+              </label>
+              <span className="text-xs text-slate-400">
+                Otorga Dote de Origen + Puntuaciones (+2/+1) + Competencias
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 max-h-56 overflow-y-auto pr-1">
+              {TODOS_LOS_TRASFONDOS_55.map((tr) => (
+                <button
+                  key={tr.id}
+                  type="button"
+                  onClick={() => handleCambiarTrasfondo(tr.id)}
+                  className={`p-2.5 rounded-lg border text-left transition-all ${
+                    trasfondoId === tr.id
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow'
+                      : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="font-bold text-sm">{tr.nombre}</div>
+                  <div className="text-[10px] text-amber-400/90 font-mono capitalize">
+                    {tr.caracteristicasOpciones.join(' / ')}
+                  </div>
+                  <div className="text-[10px] text-slate-400 truncate">
+                    Dote: {DOTES_ORIGEN_55[tr.doteOrigenId]?.nombre.split(' ')[0]}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Detalle del Trasfondo Seleccionado */}
+            <div className="bg-slate-900/90 p-3.5 rounded-lg border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div>
+                <span className="font-bold text-slate-200 text-sm block">{trasfondoActual.nombre} ({trasfondoActual.nombreOriginal})</span>
+                <p className="text-slate-400 text-xs mt-0.5">{trasfondoActual.descripcion}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
+                  <span className="text-slate-500 block text-[10px]">Dote de Origen</span>
+                  <span className="text-amber-400 font-bold">{DOTES_ORIGEN_55[trasfondoActual.doteOrigenId]?.nombre}</span>
+                </div>
+                <div className="bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
+                  <span className="text-slate-500 block text-[10px]">Habilidades</span>
+                  <span className="text-slate-200 font-semibold capitalize">{trasfondoActual.habilidadesCompetentes.join(', ')}</span>
+                </div>
+                <div className="bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
+                  <span className="text-slate-500 block text-[10px]">Oro Inicial</span>
+                  <span className="text-amber-300 font-bold">{trasfondoActual.oroInicial} po</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SELECCIÓN DE CLASE Y SUBCLASE */}
+          <div className="bg-slate-950/70 p-4 rounded-xl border border-slate-800">
+            <label className="block text-sm font-semibold text-amber-300 mb-3 flex items-center gap-1.5">
+              <Sword className="w-4 h-4" /> 3. Selecciona una de las 12 Clases Oficiales 2024
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
               {TODAS_LAS_CLASES_55.map((c) => (
                 <button
                   key={c.id}
@@ -229,46 +392,47 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
                   }}
                   className={`p-3 rounded-lg border text-left transition-all ${
                     claseId === c.id
-                      ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow'
+                      : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
                   }`}
                 >
-                  <div className="font-semibold">{c.nombre}</div>
-                  <div className="text-xs text-slate-500">{c.dadoGolpe} | {c.tipoMagia}</div>
+                  <div className="font-semibold text-sm">{c.nombre}</div>
+                  <div className="text-xs text-slate-400">{c.dadoGolpe} • {c.tipoMagia}</div>
                 </button>
               ))}
             </div>
-          </div>
 
-          {nivel >= 3 && (
-            <div className="bg-slate-950 p-4 rounded-lg border border-amber-500/30">
-              <label className="block text-sm font-semibold text-amber-400 mb-2">
-                Subclase 2024 de {claseActual.nombre} (Desbloqueada a Nivel 3)
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {claseActual.subclases.map((sub) => (
-                  <button
-                    key={sub.id}
-                    type="button"
-                    onClick={() => setSubclaseId(sub.id)}
-                    className={`p-3 rounded-lg border text-left transition-all ${
-                      subclaseId === sub.id
-                        ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="font-semibold text-slate-100">{sub.nombre}</div>
-                    <div className="text-xs text-slate-400 mt-1 line-clamp-2">{sub.descripcion}</div>
-                  </button>
-                ))}
+            {/* Subclases si nivel >= 3 */}
+            {nivel >= 3 && (
+              <div className="bg-slate-900/90 p-4 rounded-lg border border-amber-500/30 mt-4">
+                <label className="block text-sm font-semibold text-amber-400 mb-2">
+                  Subclase 2024 de {claseActual.nombre} (Desbloqueada a Nivel {nivel})
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {claseActual.subclases.map((sub) => (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      onClick={() => setSubclaseId(sub.id)}
+                      className={`p-3 rounded-lg border text-left transition-all ${
+                        subclaseId === sub.id
+                          ? 'bg-amber-500/20 border-amber-500 text-amber-300'
+                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="font-semibold text-slate-100 text-sm">{sub.nombre}</div>
+                      <div className="text-xs text-slate-400 mt-1 line-clamp-2">{sub.descripcion}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="flex justify-end pt-4">
             <button
               onClick={() => setPaso(2)}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-2 rounded-lg transition-colors"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-2.5 rounded-lg transition-colors shadow"
             >
               Siguiente: Puntuaciones de Característica →
             </button>
@@ -279,25 +443,43 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
       {/* PASO 2: Puntuaciones de Característica */}
       {paso === 2 && (
         <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-slate-200">Asignar Puntuaciones de Característica</h3>
-          <p className="text-sm text-slate-400">
-            Los modificadores se calculan automáticamente con la fórmula estándar: Math.floor((puntuación - 10) / 2).
-          </p>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-200">Asignar Puntuaciones de Característica</h3>
+            <p className="text-sm text-slate-400 mt-1">
+              En D&D 2024, tu trasfondo ({trasfondoActual.nombre}) sugiere mejoras a sus 3 atributos principales:
+              <span className="text-amber-400 font-bold capitalize"> {trasfondoActual.caracteristicasOpciones.join(', ')}</span>.
+            </p>
+          </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {[
-              { label: 'Fuerza (FUE)', val: fuerza, set: setFuerza },
-              { label: 'Destreza (DES)', val: destreza, set: setDestreza },
-              { label: 'Constitución (CON)', val: constitucion, set: setConstitucion },
-              { label: 'Inteligencia (INT)', val: inteligencia, set: setInteligencia },
-              { label: 'Sabiduría (SAB)', val: sabiduria, set: setSabiduria },
-              { label: 'Carisma (CAR)', val: carisma, set: setCarisma },
+              { clave: 'fuerza', label: 'Fuerza (FUE)', val: fuerza, set: setFuerza },
+              { clave: 'destreza', label: 'Destreza (DES)', val: destreza, set: setDestreza },
+              { clave: 'constitucion', label: 'Constitución (CON)', val: constitucion, set: setConstitucion },
+              { clave: 'inteligencia', label: 'Inteligencia (INT)', val: inteligencia, set: setInteligencia },
+              { clave: 'sabiduria', label: 'Sabiduría (SAB)', val: sabiduria, set: setSabiduria },
+              { clave: 'carisma', label: 'Carisma (CAR)', val: carisma, set: setCarisma },
             ].map((item) => {
               const mod = calcularModificadorCaracteristica(item.val);
+              const esOpcionTrasfondo = trasfondoActual.caracteristicasOpciones.includes(item.clave as any);
               return (
-                <div key={item.label} className="bg-slate-950 p-4 rounded-lg border border-slate-800 text-center">
-                  <div className="text-xs text-slate-400 mb-1 font-semibold">{item.label}</div>
-                  <div className="text-2xl font-bold text-amber-400 mb-2">
+                <div
+                  key={item.label}
+                  className={`p-4 rounded-xl border text-center transition-all ${
+                    esOpcionTrasfondo
+                      ? 'bg-slate-950 border-amber-500/40 shadow-sm'
+                      : 'bg-slate-950/60 border-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-xs text-slate-400 mb-1 font-semibold">
+                    <span>{item.label}</span>
+                    {esOpcionTrasfondo && (
+                      <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30">
+                        Trasfondo
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-3xl font-bold text-amber-400 my-1">
                     {mod >= 0 ? `+${mod}` : mod}
                   </div>
                   <input
@@ -306,7 +488,7 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
                     max={20}
                     value={item.val}
                     onChange={(e) => item.set(parseInt(e.target.value) || 10)}
-                    className="w-20 text-center bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-100 font-bold"
+                    className="w-20 text-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-100 font-bold"
                   />
                 </div>
               );
@@ -316,7 +498,7 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
           <div className="flex justify-between pt-4">
             <button
               onClick={() => setPaso(1)}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg"
+              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded-lg"
             >
               ← Volver
             </button>
@@ -334,9 +516,12 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
       {paso === 3 && (
         <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-semibold text-slate-200 mb-2">Arma Principal y Maestría Asociada</h3>
+            <h3 className="text-lg font-semibold text-slate-200 mb-1">Arma Principal y Propiedad de Maestría</h3>
+            <p className="text-xs text-slate-400 mb-3">
+              Las maestrías 2024 desbloquean efectos tácticos en combate al impactar.
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {Object.values(CATALOGO_ARMAS_55).slice(0, 6).map((arma) => {
+              {Object.values(CATALOGO_ARMAS_55).slice(0, 9).map((arma) => {
                 const infoMaestria = MAESTRIAS_ARMAS_55[arma.maestriaPorDefecto];
                 return (
                   <button
@@ -349,7 +534,7 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
                         : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
                     }`}
                   >
-                    <div className="font-semibold">{arma.nombre}</div>
+                    <div className="font-semibold text-sm">{arma.nombre}</div>
                     <div className="text-xs text-slate-400">{arma.dadoDano} {arma.tipoDano}</div>
                     <div className="mt-2 text-xs font-bold text-amber-400 flex items-center gap-1">
                       <Sword className="w-3 h-3" />
@@ -362,9 +547,14 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-slate-200 mb-2">Dote de Origen Obligatoria (Nivel 1)</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {Object.values(DOTES_ORIGEN_55).slice(0, 6).map((d) => (
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-slate-200">Dote de Origen Obligatoria (Nivel 1)</h3>
+              <span className="text-xs text-amber-400 font-semibold">
+                Sugerida por tu trasfondo: {DOTES_ORIGEN_55[trasfondoActual.doteOrigenId]?.nombre}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
+              {Object.values(DOTES_ORIGEN_55).map((d) => (
                 <button
                   key={d.id}
                   type="button"
@@ -375,7 +565,7 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
                       : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
                   }`}
                 >
-                  <div className="font-semibold">{d.nombre}</div>
+                  <div className="font-semibold text-sm">{d.nombre}</div>
                   <div className="text-xs text-slate-400 mt-1">{d.descripcion}</div>
                 </button>
               ))}
@@ -385,7 +575,7 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
           <div className="flex justify-between pt-4">
             <button
               onClick={() => setPaso(2)}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg"
+              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded-lg"
             >
               ← Volver
             </button>
@@ -403,11 +593,14 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
       {paso === 4 && (
         <div className="space-y-6">
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+            <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-4 mb-4 gap-4">
               <div>
                 <h3 className="text-2xl font-bold text-amber-400">{nombre}</h3>
-                <p className="text-slate-400 text-sm">
-                  {especie} {claseActual.nombre} {nivel >= 3 ? `(${subclaseId})` : ''} - Nivel {nivel}
+                <p className="text-slate-300 text-sm mt-0.5">
+                  <span className="font-bold text-amber-300">{especieActual.nombre}</span>
+                  {legadoActual ? ` (${legadoActual.nombre})` : ''} •{' '}
+                  <span className="font-semibold text-slate-200">Trasfondo {trasfondoActual.nombre}</span> •{' '}
+                  <span className="font-bold text-sky-400">{claseActual.nombre}</span> {nivel >= 3 ? `[${subclaseId}]` : ''} (Nivel {nivel})
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -423,26 +616,51 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
                   </div>
                   <div className="text-lg font-bold text-blue-200">{caCalculada}</div>
                 </div>
+                <div className="bg-emerald-950/60 border border-emerald-800 px-3 py-1.5 rounded-lg text-center">
+                  <div className="text-xs text-emerald-300 font-semibold flex items-center gap-1">
+                    <Compass className="w-3.5 h-3.5" /> Vel.
+                  </div>
+                  <div className="text-lg font-bold text-emerald-200">{velocidadFinal} ft</div>
+                </div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-4">
               <div className="bg-slate-900 p-2.5 rounded border border-slate-800">
-                <span className="text-slate-400 text-xs">Arma:</span>
+                <span className="text-slate-400 text-xs">Visión en Oscuridad:</span>
+                <p className="font-semibold text-slate-200">{visionFinal > 0 ? `${visionFinal} pies` : 'No tiene'}</p>
+              </div>
+              <div className="bg-slate-900 p-2.5 rounded border border-slate-800">
+                <span className="text-slate-400 text-xs">Arma & Maestría:</span>
                 <p className="font-semibold text-slate-200">{CATALOGO_ARMAS_55[armaPrincipal]?.nombre}</p>
-                <p className="text-xs text-amber-400 font-bold">Maestría: {CATALOGO_ARMAS_55[armaPrincipal]?.maestriaPorDefecto}</p>
+                <p className="text-xs text-amber-400 font-bold capitalize">{CATALOGO_ARMAS_55[armaPrincipal]?.maestriaPorDefecto}</p>
               </div>
               <div className="bg-slate-900 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 text-xs">Dote de Origen:</span>
                 <p className="font-semibold text-slate-200">{DOTES_ORIGEN_55[doteOrigen]?.nombre}</p>
               </div>
               <div className="bg-slate-900 p-2.5 rounded border border-slate-800">
-                <span className="text-slate-400 text-xs">Competencia:</span>
-                <p className="font-semibold text-slate-200">+{calcularBonificadorCompetencia(nivel)}</p>
-              </div>
-              <div className="bg-slate-900 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 text-xs">Inspiración Heroica:</span>
                 <p className="font-semibold text-amber-300">ACTIVA ✓</p>
+              </div>
+            </div>
+
+            {/* Rasgos de Especie y Legado en el resumen */}
+            <div className="bg-slate-900/80 p-3.5 rounded-lg border border-slate-800 text-xs space-y-2">
+              <span className="font-bold text-amber-400 block text-xs uppercase tracking-wider">
+                Rasgos de {especieActual.nombre} {legadoActual ? `• ${legadoActual.nombre}` : ''}:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {especieActual.rasgosBase.map((r) => (
+                  <span key={r.nombre} className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
+                    {r.nombre}
+                  </span>
+                ))}
+                {legadoActual?.rasgos.map((r) => (
+                  <span key={r.nombre} className="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/40 font-semibold">
+                    ⭐ {r.nombre}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
@@ -450,7 +668,7 @@ export function CreadorPersonajePasoAPaso({ onGuardarPersonaje, onCancelar }: Pr
           <div className="flex justify-between pt-4">
             <button
               onClick={() => setPaso(3)}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg"
+              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded-lg"
             >
               ← Volver
             </button>

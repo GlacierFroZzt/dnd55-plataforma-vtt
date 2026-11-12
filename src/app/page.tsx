@@ -229,7 +229,7 @@ export default function PaginaPrincipal() {
                 <div>
                   <h4 className="font-bold text-slate-100 text-base">{personajeActivo.nombre}</h4>
                   <p className="text-xs text-slate-400">
-                    {personajeActivo.especie} {personajeActivo.claseId} (Nv {personajeActivo.nivel}) • PG: {personajeActivo.puntosGolpeActuales}/{personajeActivo.puntosGolpeMaximos} • CA: {personajeActivo.claseArmadura} • Maestría: Roce (Graze)
+                    {personajeActivo.especie}{personajeActivo.legadoEspecie ? ` (${personajeActivo.legadoEspecie})` : ''} • {personajeActivo.trasfondo} • {personajeActivo.claseId} (Nv {personajeActivo.nivel}) • PG: {personajeActivo.puntosGolpeActuales}/{personajeActivo.puntosGolpeMaximos} • CA: {personajeActivo.claseArmadura} • Maestría: Roce (Graze)
                   </p>
                 </div>
               </div>

@@ -415,7 +415,7 @@ export function MesaJuego({ personajeInicial, onVolverAlMenu }: Props) {
                   <div>
                     <h3 className="font-bold text-slate-100 text-sm">{pj.nombre}</h3>
                     <p className="text-xs text-slate-400">
-                      {pj.especie} {pj.claseId} (Nv {pj.nivel})
+                      {pj.especie}{pj.legadoEspecie ? ` (${pj.legadoEspecie})` : ''} • {pj.trasfondo} • {pj.claseId} (Nv {pj.nivel})
                     </p>
                   </div>
                   {pj.inspiracionHeroica && (

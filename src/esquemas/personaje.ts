@@ -8,6 +8,7 @@ export const FichaPersonajeSchema = z.object({
   nombre: z.string(),
   jugadorNombre: z.string().default('Aventurero'),
   especie: z.string(),
+  legadoEspecie: z.string().optional(),
   trasfondo: z.string(),
   claseId: z.string(),
   subclaseId: z.string().optional(),

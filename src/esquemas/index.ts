@@ -6,5 +6,7 @@ export * from './maestrias';
 export * from './armas';
 export * from './clase';
 export * from './dote';
+export * from './especie';
+export * from './trasfondo';
 export * from './campana';
 export * from './personaje';
