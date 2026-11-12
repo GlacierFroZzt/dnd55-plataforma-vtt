@@ -11,9 +11,13 @@ import { resolverEfectoMaestria } from '@/motor/reglas/resolutorMaestria';
 import { calcularEfectosAgotamiento } from '@/motor/reglas/gestorAgotamiento';
 import { CATALOGO_ARMAS_55 } from '@/datos/armas';
 import { MAESTRIAS_ARMAS_55 } from '@/datos/maestrias';
+import { VisorMapa2D } from '@/componentes/mapa/VisorMapa2D';
+import { generarMapaProcedural } from '@/motor/mapa/generadorProcedural';
+import { actualizarNieblaDeGuerra } from '@/motor/mapa/calculadorVisionNiebla';
+import { Mapa2D, BiomaMapa, EntidadMapa } from '@/esquemas/mapa2d';
 import {
   Shield, Heart, Dices, BookOpen, Users, Sparkles, Send,
-  Cpu, Copy, Check, AlertCircle, RefreshCw, Moon, Flame
+  Cpu, Copy, Check, AlertCircle, RefreshCw, Moon, Flame, MapPin, Navigation, Eye, MessageSquare, Split
 } from 'lucide-react';
 
 interface Props {
@@ -38,7 +42,18 @@ export function MesaJuego({ personajeInicial, onVolverAlMenu }: Props) {
   const [cargandoIA, setCargandoIA] = useState(false);
 
   // Subnavegación Phone-First para pantallas móviles (< 1024px)
-  const [pestanaMovil, setPestanaMovil] = useState<'chat' | 'ficha' | 'dados'>('chat');
+  const [pestanaMovil, setPestanaMovil] = useState<'mapa' | 'chat' | 'ficha' | 'dados'>('mapa');
+
+  // Modo de visualización en la columna central de escritorio (dividido, solo mapa o solo chat)
+  const [modoVistaCentro, setModoVistaCentro] = useState<'dividido' | 'mapa' | 'chat'>('dividido');
+
+  // Mundo 2D con Generación Procedural y Niebla de Guerra
+  const [mapa2D, setMapa2D] = useState<Mapa2D>(() => {
+    const m = generarMapaProcedural('cripta');
+    actualizarNieblaDeGuerra(m, m.posicionJugadorInicial, 7);
+    return m;
+  });
+  const [posicionJugador, setPosicionJugador] = useState<{ x: number; y: number }>(() => mapa2D.posicionJugadorInicial);
 
   // Memoria del Bot DM (Ledger de Decisiones)
   const [ledger] = useState<LedgerEventos>(() => {
@@ -290,6 +305,81 @@ export function MesaJuego({ personajeInicial, onVolverAlMenu }: Props) {
     }
   };
 
+  // Acciones e Interacciones del Mapa 2D
+  const handleMoverJugador = (nuevaPos: { x: number; y: number }, piesGastados: number) => {
+    setPosicionJugador(nuevaPos);
+    setMapa2D((prev) => {
+      const mapaCopia = {
+        ...prev,
+        entidades: prev.entidades.map((e) =>
+          e.tipo === 'jugador' ? { ...e, x: nuevaPos.x, y: nuevaPos.y } : e
+        ),
+      };
+      // Radio de visión (normal 7 casillas = 35 ft, con visión en la oscuridad 12 casillas = 60 ft)
+      const radioVision = personajeActivo.velocidadPies > 30 ? 9 : 7;
+      actualizarNieblaDeGuerra(mapaCopia, nuevaPos, radioVision);
+      return mapaCopia;
+    });
+
+    setMensajes((prev) => [
+      ...prev,
+      {
+        id: `msg_mov_${Date.now()}`,
+        emisor: 'jugador',
+        nombre: personajeActivo.nombre,
+        texto: `🚶 [Mundo 2D] Avanza ${piesGastados} pies hacia la casilla (${nuevaPos.x}, ${nuevaPos.y}) explorando la zona.`,
+        timestamp: Date.now(),
+      },
+    ]);
+  };
+
+  const handleAtacarEnemigo = (enemigo: EntidadMapa) => {
+    ejecutarTiradaD20('fuerza', `Ataque con ${armaEquipada.nombre} contra ${enemigo.nombre}`);
+
+    // Aplicar daño visual en el mapa al enemigo
+    setMapa2D((prev) => {
+      const mapaCopia = {
+        ...prev,
+        entidades: prev.entidades.map((e) => {
+          if (e.id === enemigo.id && e.pgActual !== undefined) {
+            const nuevoPG = Math.max(0, e.pgActual - 8);
+            return { ...e, pgActual: nuevoPG };
+          }
+          return e;
+        }),
+      };
+      return mapaCopia;
+    });
+  };
+
+  const handleInteractuarObjeto = (objeto: EntidadMapa) => {
+    enviarMensaje(
+      `[Mundo 2D] Me aproximo a ${objeto.nombre} (${objeto.descripcion || 'objeto de la escena'}) para inspeccionarlo meticulosamente y abrirlo o activarlo.`
+    );
+  };
+
+  const handleCambiarBioma = (nuevoBioma: BiomaMapa) => {
+    const nuevoMapa = generarMapaProcedural(nuevoBioma, Date.now());
+    actualizarNieblaDeGuerra(nuevoMapa, nuevoMapa.posicionJugadorInicial, 7);
+    setMapa2D(nuevoMapa);
+    setPosicionJugador(nuevoMapa.posicionJugadorInicial);
+    enviarMensaje(`🗺️ [Exploración 2D] El grupo viaja a una nueva localización: **${nuevoMapa.nombre}**.`);
+  };
+
+  const handleRegenerarMapa = () => {
+    const nuevoMapa = generarMapaProcedural(mapa2D.bioma, Date.now() + Math.random() * 1000);
+    actualizarNieblaDeGuerra(nuevoMapa, nuevoMapa.posicionJugadorInicial, 7);
+    setMapa2D(nuevoMapa);
+    setPosicionJugador(nuevoMapa.posicionJugadorInicial);
+  };
+
+  const handleToggleNieblaGuerra = () => {
+    setMapa2D((prev) => ({
+      ...prev,
+      nieblaGuerraActiva: !prev.nieblaGuerraActiva,
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col">
       {/* Barra Superior de la Mesa */}
@@ -358,39 +448,51 @@ export function MesaJuego({ personajeInicial, onVolverAlMenu }: Props) {
       <nav aria-label="Secciones de la mesa en móvil" className="lg:hidden flex border-b border-slate-800 bg-slate-900/95 backdrop-blur sticky top-0 z-20 shrink-0">
         <button
           type="button"
+          onClick={() => setPestanaMovil('mapa')}
+          className={`flex-1 py-2 text-[11px] font-semibold flex items-center justify-center gap-1 border-b-2 transition-all min-h-[44px] ${
+            pestanaMovil === 'mapa'
+              ? 'border-amber-500 text-amber-400 bg-amber-500/10'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <MapPin className="w-3.5 h-3.5" />
+          <span>Mundo 2D</span>
+        </button>
+        <button
+          type="button"
           onClick={() => setPestanaMovil('chat')}
-          className={`flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition-all min-h-[44px] ${
+          className={`flex-1 py-2 text-[11px] font-semibold flex items-center justify-center gap-1 border-b-2 transition-all min-h-[44px] ${
             pestanaMovil === 'chat'
               ? 'border-amber-500 text-amber-400 bg-amber-500/10'
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          <Sparkles className="w-4 h-4" />
-          <span>Narración & DM</span>
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Narración</span>
         </button>
         <button
           type="button"
           onClick={() => setPestanaMovil('ficha')}
-          className={`flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition-all min-h-[44px] ${
+          className={`flex-1 py-2 text-[11px] font-semibold flex items-center justify-center gap-1 border-b-2 transition-all min-h-[44px] ${
             pestanaMovil === 'ficha'
               ? 'border-amber-500 text-amber-400 bg-amber-500/10'
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          <Shield className="w-4 h-4" />
-          <span>Mi Ficha & Grupo</span>
+          <Shield className="w-3.5 h-3.5" />
+          <span>Ficha</span>
         </button>
         <button
           type="button"
           onClick={() => setPestanaMovil('dados')}
-          className={`flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition-all min-h-[44px] ${
+          className={`flex-1 py-2 text-[11px] font-semibold flex items-center justify-center gap-1 border-b-2 transition-all min-h-[44px] ${
             pestanaMovil === 'dados'
               ? 'border-amber-500 text-amber-400 bg-amber-500/10'
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          <Dices className="w-4 h-4" />
-          <span>Dados & Bitácora</span>
+          <Dices className="w-3.5 h-3.5" />
+          <span>Dados</span>
         </button>
       </nav>
 
@@ -544,93 +646,197 @@ export function MesaJuego({ personajeInicial, onVolverAlMenu }: Props) {
           </div>
         </div>
 
-        {/* COLUMNA 2: Chat Narrativo con Streaming del Bot DM (6 columnas) */}
-        <div className={`${pestanaMovil === 'chat' ? 'flex' : 'hidden lg:flex'} lg:col-span-6 flex-col h-[calc(100dvh-106px)] lg:h-[calc(100vh-61px)] bg-[#090d16]`}>
-          {/* Mensajes */}
-          <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3">
-            {mensajes.map((m) => (
-              <div
-                key={m.id}
-                className={`p-3 sm:p-3.5 rounded-xl text-xs sm:text-sm leading-relaxed ${
-                  m.emisor === 'dm'
-                    ? 'bg-slate-900 border border-amber-500/30 text-slate-200'
-                    : m.nombre.includes('Sistema')
-                    ? 'bg-indigo-950/40 border border-indigo-800/40 text-indigo-200'
-                    : 'bg-slate-800 border border-slate-700 text-slate-100 ml-4 sm:ml-6'
+        {/* COLUMNA 2: Mundo 2D Procedural y/o Chat Narrativo con Streaming del Bot DM */}
+        <div className={`${pestanaMovil === 'mapa' || pestanaMovil === 'chat' ? 'flex' : 'hidden lg:flex'} lg:col-span-6 flex-col h-[calc(100dvh-106px)] lg:h-[calc(100vh-61px)] bg-[#090d16] overflow-hidden`}>
+          {/* Barra de Modo Central en Escritorio (Dividido / Solo Mapa / Solo Chat) */}
+          <div className="hidden lg:flex items-center justify-between px-3 py-1.5 bg-slate-950 border-b border-slate-800 text-xs shrink-0">
+            <span className="text-slate-300 font-semibold flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-amber-400" />
+              <span>{mapa2D.nombre}</span>
+              <span className="text-[10px] text-amber-400/80 font-mono bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 capitalize">
+                {mapa2D.bioma}
+              </span>
+            </span>
+
+            <div className="flex items-center gap-1 bg-slate-900 p-0.5 rounded-lg border border-slate-800">
+              <button
+                type="button"
+                onClick={() => setModoVistaCentro('dividido')}
+                className={`px-2.5 py-0.5 rounded text-[11px] font-semibold transition-all ${
+                  modoVistaCentro === 'dividido'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow'
+                    : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <div className="flex items-center justify-between mb-1 text-xs">
-                  <span
-                    className={`font-bold ${
+                Pantalla Dividida
+              </button>
+              <button
+                type="button"
+                onClick={() => setModoVistaCentro('mapa')}
+                className={`px-2.5 py-0.5 rounded text-[11px] font-semibold transition-all ${
+                  modoVistaCentro === 'mapa'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Solo Mapa
+              </button>
+              <button
+                type="button"
+                onClick={() => setModoVistaCentro('chat')}
+                className={`px-2.5 py-0.5 rounded text-[11px] font-semibold transition-all ${
+                  modoVistaCentro === 'chat'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Solo Chat
+              </button>
+            </div>
+          </div>
+
+          {/* VISTA DEL MAPA 2D (Visible en móvil cuando pestanaMovil === 'mapa', o en escritorio según modoVistaCentro) */}
+          {((pestanaMovil === 'mapa') || (modoVistaCentro !== 'chat')) && (
+            <div
+              className={`relative ${
+                modoVistaCentro === 'dividido'
+                  ? 'h-[50%] min-h-[280px] lg:h-[50%]'
+                  : 'h-full flex-1'
+              } ${pestanaMovil === 'chat' ? 'hidden lg:block' : 'block'}`}
+            >
+              <VisorMapa2D
+                mapa={mapa2D}
+                posicionJugador={posicionJugador}
+                velocidadJugadorPies={personajeActivo.velocidadPies}
+                onMoverJugador={handleMoverJugador}
+                onAtacarEnemigo={handleAtacarEnemigo}
+                onInteractuarObjeto={handleInteractuarObjeto}
+                onCambiarBioma={handleCambiarBioma}
+                onRegenerarMapa={handleRegenerarMapa}
+                onToggleNieblaGuerra={handleToggleNieblaGuerra}
+              />
+
+              {/* Botón flotante en móvil para saltar rápidamente al Chat DM */}
+              <button
+                type="button"
+                onClick={() => setPestanaMovil('chat')}
+                className="lg:hidden absolute top-12 right-2 bg-slate-950/90 hover:bg-slate-900 border border-amber-500/50 text-amber-300 text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-xl backdrop-blur"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Chat DM</span>
+                <span className="bg-amber-500 text-slate-950 text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                  {mensajes.length}
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* VISTA DEL CHAT NARRATIVO Y ACCIONES DEL BOT DM */}
+          {((pestanaMovil === 'chat') || (modoVistaCentro !== 'mapa')) && (
+            <div
+              className={`flex-1 flex flex-col min-h-0 ${
+                modoVistaCentro === 'dividido' ? 'border-t border-slate-800' : 'h-full'
+              } ${pestanaMovil === 'mapa' ? 'hidden lg:flex' : 'flex'}`}
+            >
+              {/* Botón flotante en móvil para volver al mapa */}
+              <div className="lg:hidden px-3 py-1.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs shrink-0">
+                <span className="text-slate-400 font-medium">Narrativa del Bot DM</span>
+                <button
+                  type="button"
+                  onClick={() => setPestanaMovil('mapa')}
+                  className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold px-2 py-0.5 rounded flex items-center gap-1"
+                >
+                  <MapPin className="w-3 h-3" /> Ver Mapa 2D
+                </button>
+              </div>
+
+              {/* Mensajes */}
+              <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3">
+                {mensajes.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`p-3 sm:p-3.5 rounded-xl text-xs sm:text-sm leading-relaxed ${
                       m.emisor === 'dm'
-                        ? 'text-amber-400 flex items-center gap-1'
-                        : 'text-slate-300'
+                        ? 'bg-slate-900 border border-amber-500/30 text-slate-200'
+                        : m.nombre.includes('Sistema')
+                        ? 'bg-indigo-950/40 border border-indigo-800/40 text-indigo-200'
+                        : 'bg-slate-800 border border-slate-700 text-slate-100 ml-4 sm:ml-6'
                     }`}
                   >
-                    {m.emisor === 'dm' && <Sparkles className="w-3 h-3" />}
-                    {m.nombre}
-                  </span>
-                  <span className="text-[10px] text-slate-500">
-                    {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-                <div className="whitespace-pre-line">{m.texto}</div>
+                    <div className="flex items-center justify-between mb-1 text-xs">
+                      <span
+                        className={`font-bold ${
+                          m.emisor === 'dm'
+                            ? 'text-amber-400 flex items-center gap-1'
+                            : 'text-slate-300'
+                        }`}
+                      >
+                        {m.emisor === 'dm' && <Sparkles className="w-3 h-3" />}
+                        {m.nombre}
+                      </span>
+                      <span className="text-[10px] text-slate-500">
+                        {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="whitespace-pre-line">{m.texto}</div>
+                  </div>
+                ))}
+                {cargandoIA && (
+                  <div className="bg-slate-900 border border-amber-500/30 p-3 rounded-xl text-xs text-amber-300 flex items-center gap-2 animate-pulse">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    El Bot DM está calculando consecuencias y tejiendo la narración...
+                  </div>
+                )}
               </div>
-            ))}
-            {cargandoIA && (
-              <div className="bg-slate-900 border border-amber-500/30 p-3 rounded-xl text-xs text-amber-300 flex items-center gap-2 animate-pulse">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                El Bot DM está calculando consecuencias y tejiendo la narración...
+
+              {/* Acciones Rápidas con Scroll Horizontal en Móvil */}
+              <div className="px-3 sm:px-4 py-2 border-t border-slate-800/60 bg-slate-950/50 flex overflow-x-auto no-scrollbar gap-1.5 text-xs whitespace-nowrap shrink-0">
+                <button
+                  onClick={() => enviarMensaje('Ataco con mi arma principal aprovechando su maestría de combate.')}
+                  className="bg-red-950/50 hover:bg-red-900/60 border border-red-800/60 text-red-200 px-3 py-1.5 rounded-lg shrink-0 min-h-[36px] flex items-center"
+                >
+                  ⚔️ Atacar con {armaEquipada.nombre}
+                </button>
+                <button
+                  onClick={() => enviarMensaje('Investigo el sarcófago y los bajorrelieves en busca de inscripciones o trampas.')}
+                  className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-lg shrink-0 min-h-[36px] flex items-center"
+                >
+                  🔍 Investigar Sala
+                </button>
+                <button
+                  onClick={() => enviarMensaje('Intento parlamentar pacíficamente y pactar una tregua sin derramar sangre.')}
+                  className="bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-800/60 text-emerald-200 px-3 py-1.5 rounded-lg shrink-0 min-h-[36px] flex items-center"
+                >
+                  🤝 Negociar Tregua
+                </button>
               </div>
-            )}
-          </div>
 
-          {/* Acciones Rápidas con Scroll Horizontal en Móvil */}
-          <div className="px-3 sm:px-4 py-2 border-t border-slate-800/60 bg-slate-950/50 flex overflow-x-auto no-scrollbar gap-1.5 text-xs whitespace-nowrap shrink-0">
-            <button
-              onClick={() => enviarMensaje('Ataco con mi arma principal aprovechando su maestría de combate.')}
-              className="bg-red-950/50 hover:bg-red-900/60 border border-red-800/60 text-red-200 px-3 py-1.5 rounded-lg shrink-0 min-h-[36px] flex items-center"
-            >
-              ⚔️ Atacar con {armaEquipada.nombre}
-            </button>
-            <button
-              onClick={() => enviarMensaje('Investigo el sarcófago y los bajorrelieves en busca de inscripciones o trampas.')}
-              className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-lg shrink-0 min-h-[36px] flex items-center"
-            >
-              🔍 Investigar Sala
-            </button>
-            <button
-              onClick={() => enviarMensaje('Intento parlamentar pacíficamente y pactar una tregua sin derramar sangre.')}
-              className="bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-800/60 text-emerald-200 px-3 py-1.5 rounded-lg shrink-0 min-h-[36px] flex items-center"
-            >
-              🤝 Negociar Tregua
-            </button>
-          </div>
-
-          {/* Entrada de Texto Táctil */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              enviarMensaje();
-            }}
-            className="p-2.5 sm:p-3 bg-slate-900 border-t border-slate-800 flex gap-2 pb-safe shrink-0"
-          >
-            <input
-              type="text"
-              value={inputMensaje}
-              onChange={(e) => setInputMensaje(e.target.value)}
-              placeholder="¿Qué deseas hacer en este turno?"
-              className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-sm text-slate-100 focus:outline-none focus:border-amber-500 min-h-[44px]"
-            />
-            <button
-              type="submit"
-              disabled={cargandoIA}
-              className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold px-3.5 sm:px-4 py-2 rounded-lg flex items-center justify-center gap-1.5 text-xs sm:text-sm transition-colors min-h-[44px] shrink-0"
-            >
-              <Send className="w-4 h-4" />
-              <span className="hidden sm:inline">Enviar</span>
-            </button>
-          </form>
+              {/* Entrada de Texto Táctil */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  enviarMensaje();
+                }}
+                className="p-2.5 sm:p-3 bg-slate-900 border-t border-slate-800 flex gap-2 pb-safe shrink-0"
+              >
+                <input
+                  type="text"
+                  value={inputMensaje}
+                  onChange={(e) => setInputMensaje(e.target.value)}
+                  placeholder="¿Qué deseas hacer en este turno?"
+                  className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base sm:text-sm text-slate-100 focus:outline-none focus:border-amber-500 min-h-[44px]"
+                />
+                <button
+                  type="submit"
+                  disabled={cargandoIA}
+                  className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold px-3.5 sm:px-4 py-2 rounded-lg flex items-center justify-center gap-1.5 text-xs sm:text-sm transition-colors min-h-[44px] shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                  <span className="hidden sm:inline">Enviar</span>
+                </button>
+              </form>
+            </div>
+          )}
         </div>
 
         {/* COLUMNA 3: Tirador de Dados 5.5 y Bitácora de Decisiones (Ledger) (3 columnas) */}

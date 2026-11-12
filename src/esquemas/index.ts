@@ -11,3 +11,4 @@ export * from './trasfondo';
 export * from './buildSugerida';
 export * from './campana';
 export * from './personaje';
+export * from './mapa2d';
